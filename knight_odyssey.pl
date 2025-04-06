@@ -10,29 +10,29 @@ init_game :-
     retractall(hallucinating),
     retractall(decaying_hands),
     retractall(decay_turns(_)),
-    i_am_at(dungeon_entrance),
-    at(torch, dungeon_entrance),
-    at(dungeon_entrance_note, dungeon_entrance),
-    at(statue, main_hall),
-    at(pit, dark_room1),
-    at(escape_attempt, pit_bottom),
-    at(opium, alchemy_lab),
-    at(blue_vial, alchemy_lab),
-    at(green_vial, alchemy_lab),
-    at(purple_vial, alchemy_lab),
-    at(red_vial, alchemy_lab),
-    at(kitchen_knife, kitchen),
-    at(rotten_meat, kitchen),
-    at(fish, kitchen),
-    at(bread, kitchen),
-    at(wine_bottle, kitchen),
-    at(priest, chapel),
-    at(pyramid_artifact, chapel),
-    sanity(100),
-    hunger(0),
-    true.
+    assert(i_am_at(dungeon_entrance)),
+    assert(at(torch, dungeon_entrance)),
+    assert(at(dungeon_entrance_note, dungeon_entrance)),
+    assert(at(statue, main_hall)),
+    assert(at(pit, dark_room1)),
+    assert(at(escape_attempt, pit_bottom)),
+    assert(at(opium_powder, alchemy_lab)),
+    assert(at(blue_vial, alchemy_lab)),
+    assert(at(green_vial, alchemy_lab)),
+    assert(at(purple_vial, alchemy_lab)),
+    assert(at(red_vial, alchemy_lab)),
+    assert(at(kitchen_knife, kitchen)),
+    assert(at(rotten_meat, kitchen)),
+    assert(at(fish, kitchen)),
+    assert(at(bread, kitchen)),
+    assert(at(wine_bottle, kitchen)),
+    assert(at(priest, chapel)),
+    assert(at(pyramid_artifact, chapel)),
+    assert(sanity(100)),
+    assert(hunger(0)).
 
 path(dungeon_entrance, n, main_hall).
+path(main_hall, s, dungeon_entrance).
 path(main_hall, e, dark_room1).
 path(dark_room1, beneath, pit_bottom).
 path(dark_room1, w, main_hall).
@@ -62,16 +62,14 @@ examine(X) :-
 
 examine_item(torch) :-
     write('A wooden torch soaked in pitch. It can provide light in the darkness, but will eventually burn out.'), nl,
-    write('Traveling with a lit torch helps ward off the oppressive darkness, keeping your mind more peaceful.'),
-    nl.
+    write('Traveling with a lit torch helps ward off the oppressive darkness, keeping your mind more peaceful.'), nl.
 
 examine_item(dungeon_entrance_note) :-
     write('A bloodstained parchment with hurried, desperate writing. The message reads:'), nl,
     write('"I have located the Chalice in the deepest chamber of these accursed catacombs. The whispers... they'), nl,
     write('speak truths too terrible to bear. Abominations stalk these halls - things that were once men.'), nl,
     write('Three seals guard the inner sanctum. I have located one near the library archives, but the others...'), nl,
-    write('The walls bleed. The shadows move when unwatched. If you read this, flee while your mind remains yours. -G"'),
-    nl.
+    write('The walls bleed. The shadows move when unwatched. If you read this, flee while your mind remains yours..."'), nl.
 
 examine_item(statue) :-
     write('A grotesque effigy carved from obsidian-black stone. The deity it depicts defies comprehension -'), nl,
@@ -98,10 +96,9 @@ examine_item(escape_attempt) :-
     write('Each attempt leaves you sliding back down into the fetid muck below.'), nl,
     write('After several exhausting tries, the terrible realization sinks in - there is no way out.'), nl,
     write('This place will be your tomb, just as it was for others before you.'), nl,
-    decrease_sanity(100),
-    !.
+    decrease_sanity(100).
 
-examine_item(opium) :-
+examine_item(opium_powder) :-
     write('A small jar containing a crude brownish powder derived from poppy seeds.'), nl,
     write('Such substances were used by medieval healers to dull pain, though none called it by this name.'), nl,
     write('The jar bears symbols suggesting it will calm the mind and ease suffering.'), nl.
@@ -179,15 +176,25 @@ take(X) :-
 
 take(pyramid_artifact) :-
     i_am_at(chapel),
+    at(dead_priest, chapel),
+    at(pyramid_artifact, chapel),
+    retract(at(pyramid_artifact, chapel)),
+    assert(inventory(pyramid_artifact, 1)),
+    write('You take the stone pyramid from the altar, feeling its cold weight in your hand.'), nl,
+    !.
+
+take(pyramid_artifact) :-
+    i_am_at(chapel),
     at(priest, chapel),
     at(pyramid_artifact, chapel),
     write('As you reach for the pyramid, the priest shrieks with rage and lunges at you.'), nl,
     (inventory(kitchen_knife, Qty), Qty > 0) ->
         write('In a moment of desperate reflexes, you draw your knife and defend yourself.'), nl,
-        priest_murder,
         retract(at(pyramid_artifact, chapel)),
-        assert(inventory(pyramid_artifact, 1)),
+        retract(at(priest, chapel)),
+        assert(at(dead_priest, chapel)),
         retract(inventory(kitchen_knife, _)),
+        assert(inventory(pyramid_artifact, 1)),
         write('With shaking hands, you grab the stone pyramid from the altar.'), nl
     ;
         write('Defenseless, you can only shield yourself as the priest grasps your head.'), nl,
@@ -196,15 +203,6 @@ take(pyramid_artifact) :-
         assert(hallucinating),
         decrease_sanity(20)
     ,
-    !.
-
-take(pyramid_artifact) :-
-    i_am_at(chapel),
-    at(dead_priest, chapel),
-    at(pyramid_artifact, chapel),
-    retract(at(pyramid_artifact, chapel)),
-    assert(inventory(pyramid_artifact, 1)),
-    write('You take the stone pyramid from the altar, feeling its cold weight in your hand.'), nl,
     !.
 
 take(_) :-
@@ -291,8 +289,8 @@ use_item(wine_bottle) :-
     write('The wine has turned to vinegar, but the alcohol still burns pleasantly,'), nl,
     write('temporarily dulling your awareness of the horrors surrounding you.'), nl.
 
-use_item(opium) :-
-    consume_item(opium),
+use_item(opium_powder) :-
+    consume_item(opium_powder),
     increase_sanity(20),
     retract(hallucinating),
     write('You consume some of the opium powder. A numbing calm washes over you,'), nl,
@@ -345,20 +343,15 @@ consume_item(X) :-
 
 update_status :-
     increase_hunger(1),
-    update_torch,    
     (hallucinating -> 
-        write('cond1'),
         decrease_sanity(4),
         hallucinate
     ;
-        write('cond2'),
         decrease_sanity(1)
     ),
-    write('checking hands'),
     check_decaying_hands,
-    write('checking state'),
     check_game_state,
-    write('state checked').
+    update_torch.    
 
 increase_hunger(Amount) :-
     hunger(Current),
@@ -404,7 +397,7 @@ check_game_state :-
 
 check_game_state :-
     sanity(0), !,
-    write('The darkness has consumed your mind entirely. You collapse to the floor,'), nl,
+    write('The darkness starts to consume your mind entirely. You collapse to the floor,'), nl,
     write('clawing at your own skin, desperate to escape the horrors in your mind.'), nl,
     write('Your journey ends here, lost in madness beneath the earth.'), nl,
     halt.
@@ -473,8 +466,8 @@ go(Direction) :-
     path(Here, Direction, There),
     retract(i_am_at(Here)),
     assert(i_am_at(There)),
-    update_status,
-    !, look.
+    !, look,
+    update_status.
 
 go(_) :-
     write('You can''t go that way.').
@@ -518,8 +511,9 @@ update_torch :-
     T1 is T - 1,
     retract(torch_remaining(T)),
     assert(torch_remaining(T1)),
+    nl,
     write('Your torch burns dimmer. '), write(T1), write(' turns remaining.'),
-    nl, !.
+    nl.
 
 update_torch :-
     torch_lit,
@@ -527,8 +521,9 @@ update_torch :-
     retract(torch_remaining(1)),
     assert(torch_remaining(0)),
     retract(torch_lit),
+    nl,
     write('Your torch flickers and dies, plunging you into darkness.'),
-    nl, !.
+    nl.
 
 update_torch.
 
@@ -549,6 +544,8 @@ list_inventory :-
 list_inventory :-
     \+ (inventory(_, Qty), Qty > 0),
     write('  Nothing.'), nl.
+
+list_inventory.
 
 instructions :-
     nl,
@@ -598,19 +595,23 @@ describe(main_hall) :-
     write('you hear the faint sound of something that might be weeping... or laughter.'), nl.
 
 describe(dark_room1) :-
-    write('you enter a small, rectangular chamber with crumbling stone walls. in the center of'), nl,
+    write('You enter a small, rectangular chamber with crumbling stone walls. in the center of'), nl,
     write('the floor gapes a dark, circular pit. a putrid stench'), nl,
     write('rises from the abyss, making your eyes water and stomach churn.'), nl,
-    write('the darkness below seems absolute, swallowing the feeble light completely.'), nl,
-    write('something about the way sound echoes when small debris falls in suggests'), nl,
-    write('a terrifying depth. the rim of the hole is worn smooth, as though countless'), nl,
-    write('desperate hands once gripped it. dark stains radiate outward from the pit.'), nl,
-    write('scratches cover the nearby walls, some appearing to form words now too faded to read.'), nl.
+    write('The darkness below seems absolute, swallowing the feeble light completely.'), nl,
+    write('Something about the way sound echoes when small debris falls in suggests'), nl,
+    write('a terrifying depth. The rim of the hole is worn smooth.'), nl,
+    write('Dark stains radiate outward from the pit. Scratches cover the nearby walls,'), nl,
+    write('some appearing to form words now too faded to read.'), nl.
 
 describe(pit_bottom) :-
     write('You are submerged waist-deep in foul liquid at the bottom of the hole.'), nl,
     write('The walls rise impossibly high above, the entrance now just a distant pinprick of light.'), nl,
-    write('Your torch struggles against the oppressive darkness of this place.'), nl.
+    (torch_lit -> 
+        write('Your torch struggles against the oppressive darkness of this place.'), nl
+    ;
+        write('The darkness here is absolute, suffocating.'), nl
+    ).
 
 describe(alchemy_lab) :-
     write('You enter an ancient alchemical workshop. Heavy stone tables are stained with centuries of spilled reagents.'), nl,
