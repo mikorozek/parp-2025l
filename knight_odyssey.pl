@@ -436,7 +436,8 @@ check_decaying_hands :-
         assert(decay_no_pickup),
         write('Your hands are severely decayed. The rot is spreading up your arms.'), nl
     ; true),
-    !.
+        write('The decay continues to spread. You estimate approximately '), write(T1), 
+        write(' turns remain before it consumes you entirely.'), nl.
 
 check_decaying_hands.
 
@@ -476,8 +477,7 @@ look :-
     i_am_at(Place),
     describe(Place),
     nl,
-    notice_objects_at(Place),
-    nl.
+    notice_objects_at(Place).
 
 notice_objects_at(Place) :-
     at(X, Place),
