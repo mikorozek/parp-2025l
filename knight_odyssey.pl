@@ -21,6 +21,7 @@ init_game :-
     assert(at(green_vial, alchemy_lab)),
     assert(at(purple_vial, alchemy_lab)),
     assert(at(red_vial, alchemy_lab)),
+    assert(at(torch, fork1)),
     assert(at(kitchen_knife, kitchen)),
     assert(at(rotten_meat, kitchen)),
     assert(at(fish, kitchen)),
@@ -28,6 +29,16 @@ init_game :-
     assert(at(wine_bottle, kitchen)),
     assert(at(priest, chapel)),
     assert(at(pyramid_artifact, chapel)),
+    assert(at(alchemy_techniques, library)),
+    assert(at(merthveer, library)),
+    assert(at(silent_figure, jail)),
+    assert(at(human_remains, jail)),
+    assert(at(horrified_man, jail)),
+    assert(at(dying_prisoner, torture_chamber)),
+    assert(at(corroded_dagger, torture_chamber)),
+    assert(at(sleeping_guard, guard_quarters)),
+    assert(at(whisky, guard_quarters)),
+    assert(at(vodka, guard_quarters)),
     assert(sanity(100)),
     assert(hunger(0)).
 
@@ -46,6 +57,14 @@ path(fork1, e, chapel).
 path(chapel, w, fork1).
 path(chapel, s, library).
 path(library, n, chapel).
+path(fork1, n, fork2).
+path(fork2, s, fork1).
+path(fork2, w, guard_quarters).
+path(guard_quarters, e, fork2).
+path(fork2, e, jail).
+path(jail, w, fork2).
+path(jail, n, torture_chamber).
+path(torture_chamber, s, jail).
 
 examine(X) :-
     (inventory(X, Qty), Qty > 0) -> 
@@ -153,7 +172,7 @@ examine_item(priest) :-
     write('is not entirely under his own control. His lips constantly move in silent prayer or curse.'), nl.
 
 examine_item(dead_priest) :-
-    write('The priest\'s corpse lies in a pool of black fluid that seems to move slightly of its own accord.'), nl,
+    write('The priest''s corpse lies in a pool of black fluid that seems to move slightly of its own accord.'), nl,
     write('His face is frozen in that terrible smile, eyes still open and staring at nothing.'), nl,
     write('The wound in his chest pulses faintly, as if something inside is still alive.'), nl,
     write('Despite being clearly dead, his fingers occasionally twitch, and you swear'), nl,
@@ -165,13 +184,99 @@ examine_item(pyramid_artifact) :-
     write('and somehow heavier than its size would suggest. This appears to match one of the recesses'), nl,
     write('in the statue base you saw in the main hall.'), nl.
 
-examine_item(X) :-
-    write('You see nothing special about the '), write(X), write('.'),
-    nl.
+examine_item(sphere_artifact) :-
+    write('A perfect sphere of obsidian-black stone. No tool marks are visible on its flawless surface.'), nl,
+    write('It feels unnaturally cold to the touch, and somehow heavier than its size would suggest.'), nl,
+    write('When you look closely, you see pinpricks of light deep within, like distant stars.'), nl,
+    write('This appears to match one of the recesses in the statue base you saw in the main hall.'), nl.
+
+examine_item(alchemy_techniques) :-
+    write('A weathered tome with a cracked leather spine. The pages detail ancient alchemical processes.'), nl,
+    write('You find several relevant sections:'), nl,
+    write('- Opium powder: "A salve for the troubled mind. Calms the nerves and dispels phantasms."'), nl,
+    write('- Blue vial: "Essence of clarity. Restores the mind to perfect equilibrium."'), nl,
+    write('- Green vial: "The universal solvent. Dissolves flesh, bone, and even the hardest armor with ease."'), nl,
+    write('- Purple vial: "Opens the third eye to visions beyond mortal comprehension."'), nl,
+    write('- Red vial: "The curse of living decay. Flesh rots while consciousness remains."'), nl.
+
+examine_item(merthveer) :-
+    write('A book bound in what appears to be human skin. The title "Merthveer" is branded onto the cover.'), nl,
+    write('The pages contain disturbing illustrations of rituals performed before a many-limbed deity'), nl,
+    write('with multiple eyes arranged in an unnatural pattern.'), nl,
+    write('The text describes an ancient being that exists beyond human comprehension, whose mere'), nl,
+    write('presence corrupts the mind and warps reality.'), nl,
+    write('Several pages are stained with substances you prefer not to identify.'), nl,
+    write('Reading further makes your vision swim and your sanity waver.'), nl,
+    decrease_sanity(10).
+
+examine_item(silent_figure) :-
+    write('You approach the bars to get a better look at the silent prisoner.'), nl,
+    write('His skin is unnaturally pale, stretched too tightly over sharp bones.'), nl,
+    write('His eyes never blink as they follow your every movement.'), nl,
+    write('His lips are sewn shut with crude black thread, yet you swear'), nl,
+    write('you can hear faint whispers emanating from him.'), nl,
+    write('As you turn to leave, you notice his shadow doesn''t match his body''s position.'), nl,
+    decrease_sanity(5).
+
+examine_item(human_remains) :-
+    write('The corpse has been here for some time, though the dry air has preserved it somewhat.'), nl,
+    write('The body is contorted in an unnatural position, suggesting a violent end.'), nl,
+    write('The skull has been opened and appears hollow, as if its contents were removed.'), nl,
+    write('There are strange symbols carved into the leathery skin across the chest.'), nl,
+    write('Several fingers and toes appear to have been systematically removed, the wounds cauterized.'), nl,
+    write('A small object glints faintly in the ribcage, partially hidden by the withered organs.'), nl.
+
+examine_item(horrified_man) :-
+    write('The man cowers in the far corner of his cell as you approach.'), nl,
+    write('His once-fine clothes hang in tatters, and his body bears countless small, precise cuts.'), nl,
+    write('His eyes are wide with terror as he whispers urgently: "They take us one by one...'), nl,
+    write('down that passage... we hear the screams... then nothing. The guard...'), nl,
+    write('He clutches something small and metallic in his trembling hands, hiding it'), nl,
+    write('whenever he hears a sound from the passage. "I found a beautiful sphere in this place, black as night.'), nl,
+    write('That thing... the guard... took it from me. Said it belonged to his master..."'), nl.
+
+examine_item(dying_prisoner) :-
+    write('You approach the hanging man, whose breaths come in shallow, wet gasps.'), nl,
+    write('His body has been systematically mutilated - skin peeled away in precise patterns'), nl,
+    write('that form symbols similar to those you''ve seen elsewhere in the catacombs.'), nl,
+    write('His jaw has been removed entirely, and his tongue cut out, ensuring his silence.'), nl,
+    write('One eye has been surgically extracted.'), nl,
+    write('A small key on a chain hangs from a nail driven through his ankle.'), nl.
+
+examine_item(corroded_dagger) :-
+    write('A dagger with a blade corroded by time and strange fluids.'), nl,
+    write('Despite its deteriorated condition, it maintains a wicked edge.'), nl,
+    write('Strange symbols are etched into the blade, visible despite the corrosion.'), nl,
+    write('It feels unnaturally cold to the touch, and somehow heavier than it should be.'), nl.
+
+examine_item(sleeping_guard) :-
+    write('As you approach cautiously, you realize with horror that this is not armor at all.'), nl,
+    write('The metal plates are fused directly to the creature''s flesh - grown from it, part of it.'), nl,
+    write('Its proportions are wrong - limbs too long, joints bending in impossible directions.'), nl,
+    write('Each breath it takes produces a sound like metal grinding against wet stone.'), nl,
+    write('Its helm-like head has no visor, only a solid plate with crude eyeholes that leak a yellow fluid.'), nl,
+    write('One massive gauntleted hand clutches an iron mace even in sleep.'), nl,
+    write('You pray it doesn''t wake.'), nl.
+
+examine_item(whisky) :-
+    write('A medium size bottle of amber liquid. The label has long since rotted away.'), nl,
+    write('The liquid inside still sloshes invitingly, preserved by the high alcohol content.'), nl,
+    write('Such spirits might numb your mind to the horrors of this place, at least temporarily.'), nl.
+
+examine_item(vodka) :-
+    write('A clear liquid in a dusty bottle. Despite its age, it appears unspoiled.'), nl,
+    write('The strong smell of alcohol burns your nostrils when you remove the cork.'), nl,
+    write('Drinking this might provide temporary relief for your fraying nerves.'), nl.
 
 take(X) :-
-    member(X, [statue, pit, escape_attempt, priest, dead_priest]), 
+    member(X, [statue, pit, escape_attempt, priest, dead_priest, silent_figure, human_remains, horrified_man, dying_prisoner, sleeping_guard]), 
     write('You cannot take that with you.'),
+    nl, !.
+
+take(_) :-
+    decay_no_pickup,
+    write('Your hands, ravaged by the spreading rot, are too weak to grasp anything.'), nl,
+    write('The flesh crumbles and splits at the slightest pressure.'),
     nl, !.
 
 take(pyramid_artifact) :-
@@ -180,15 +285,14 @@ take(pyramid_artifact) :-
     at(pyramid_artifact, chapel),
     retract(at(pyramid_artifact, chapel)),
     assert(inventory(pyramid_artifact, 1)),
-    write('You take the stone pyramid from the altar, feeling its cold weight in your hand.'), nl,
-    !.
+    write('You take the stone pyramid from the altar, feeling its cold weight in your hand.'), nl.
 
 take(pyramid_artifact) :-
     i_am_at(chapel),
     at(priest, chapel),
     at(pyramid_artifact, chapel),
     write('As you reach for the pyramid, the priest shrieks with rage and lunges at you.'), nl,
-    (inventory(kitchen_knife, Qty), Qty > 0) ->
+    ((inventory(kitchen_knife, Qty), Qty > 0) ->
         write('In a moment of desperate reflexes, you draw your knife and defend yourself.'), nl,
         retract(at(pyramid_artifact, chapel)),
         retract(at(priest, chapel)),
@@ -202,14 +306,7 @@ take(pyramid_artifact) :-
         write('and reality warps around you. You are now hallucinating.'), nl,
         assert(hallucinating),
         decrease_sanity(20)
-    ,
-    !.
-
-take(_) :-
-    decay_no_pickup,
-    write('Your hands, ravaged by the spreading rot, are too weak to grasp anything.'), nl,
-    write('The flesh crumbles and splits at the slightest pressure.'),
-    nl, !.
+    ).
 
 take(X) :-
     i_am_at(Place),
@@ -223,22 +320,26 @@ take(X) :-
         assert(inventory(X, 1))
     ),
     write('You pick up the '), write(X), write('.'),
-    !, nl.
+    nl, !.
 
 take(X) :-
     write('There is no '), write(X), write(' here to take.'),
     nl.
 
 use(X) :-
-    member(X, [dungeon_entrance_note]), 
+    member(X, [dungeon_entrance_note, alchemy_techniques, merthveer]), 
     write('This item can only be examined, not used.'),
+    nl, !.
+
+use(X) :-
+    member(X, [pyramid_artifact, sphere_artifact]), 
+    write('This item can only be used, in the main hall.'),
     nl, !.
 
 use(X) :-
     inventory(X, Qty),
     Qty > 0,
-    use_item(X),
-    !.
+    use_item(X), !.
 
 use(X) :-
     write('You don''t have any '), write(X), write(' to use.'),
@@ -304,6 +405,30 @@ use_item(blue_vial) :-
     write('seem less threatening. Your mind feels restored and focused.'), nl.
 
 use_item(green_vial) :-
+    i_am_at(guard_quarters),
+    at(sleeping_guard, guard_quarters),
+    write('You carefully unstop the vial and throw the viscous green liquid at the sleeping guard.'), nl,
+    write('The acid splashes across its metal-fused flesh, instantly hissing and bubbling.'), nl,
+    write('The creature awakens with a horrific shriek as the corrosive substance eats through'), nl,
+    write('its armored plates, revealing pulsing, inhuman flesh beneath.'), nl,
+    ((inventory(corroded_dagger, Qty), Qty > 0) ->
+        write('Acting on instinct, you lunge forward with your dagger, driving it deep into'), nl,
+        write('the exposed flesh of its throat. Black ichor sprays from the wound as the creature'), nl,
+        write('thrashes wildly before collapsing in a heap. Its body continues to twitch'), nl,
+        write('as the acid dissolves more of its form.'), nl,
+        write('As its body deteriorates, a perfect black sphere rolls from its remains.'), nl,
+        retract(at(sleeping_guard, guard_quarters)),
+        assert(at(dead_guard, guard_quarters)),
+        assert(at(sphere_artifact, guard_quarters))
+    ;
+        write('The creature rises in agony and rage, its faceplate splitting open to reveal'), nl,
+        write('rows of needle-like teeth. Though wounded and burning, it hefts its massive'), nl,
+        write('halberd with terrifying speed. The last thing you see is the blade arcing'), nl,
+        write('toward your neck before darkness claims you.'), nl,
+        halt
+    ), !.
+
+use_item(green_vial) :-
     consume_item(green_vial),
     write('You drink the viscous green liquid, which immediately burns your throat.'), nl,
     write('To your horror, you feel it eating through your insides like acid.'), nl,
@@ -326,6 +451,40 @@ use_item(red_vial) :-
     write('Then your hands begin to tingle unpleasantly. Looking down, you watch in horror'), nl,
     write('as your flesh begins to rot before your eyes. The decay is spreading slowly.'), nl,
     write('You must find a way to stop it before it consumes you entirely.'), nl.
+
+use_item(whisky) :-
+    consume_item(whisky),
+    increase_sanity(25),
+    increase_hunger(10),
+    write('You take a long swig of the aged whisky. It burns going down,'), nl,
+    write('but spreads a comforting warmth through your body.'), nl,
+    write('The horrors around you seem slightly more distant now.'), nl.
+
+use_item(vodka) :-
+    consume_item(vodka),
+    increase_sanity(25),
+    increase_hunger(10),
+    write('You drink the strong, clear spirit. It sears your throat'), nl,
+    write('but brings a numbing calm to your mind.'), nl,
+    write('Your fear recedes temporarily as the alcohol dulls your senses.'), nl.
+
+use_item(corroded_dagger) :-
+    i_am_at(guard_quarters),
+    at(sleeping_guard, guard_quarters),
+    write('You approach the sleeping armored figure, dagger raised to strike a killing blow.'), nl,
+    write('The blade connects with the metallic plating but merely scrapes across it with a hideous screech.'), nl,
+    write('The creature''s eyes snap open - glowing yellow orbs behind the metal faceplate.'), nl,
+    write('It rises with impossible speed, a massive gauntlet seizing your throat.'), nl,
+    write('Your dagger clatters uselessly to the floor as your feet leave the ground.'), nl,
+    write('The last thing you see is its faceplate splitting open vertically, revealing rows'), nl,
+    write('of needle-like teeth before darkness claims you...'), nl,
+    write('You awaken briefly in the torture chamber, strapped to a table as the creature'), nl,
+    write('methodically begins its work. The pain is beyond comprehension.'), nl,
+    write('Death, when it finally comes, is a mercy.'), nl,
+    halt.
+
+use_item(corroded_dagger) :-
+    write('You test the edge of the dagger. Despite its corrosion, it remains surprisingly sharp.'), nl.
 
 use_item(X) :-
     consume_item(X),
@@ -351,7 +510,7 @@ update_status :-
     ),
     check_decaying_hands,
     check_game_state,
-    update_torch.    
+    update_torch, !.
 
 increase_hunger(Amount) :-
     hunger(Current),
@@ -425,6 +584,7 @@ check_decaying_hands :-
     T1 is T - 1,
     retract(decay_turns(T)),
     assert(decay_turns(T1)),
+    nl,
     (T1 =:= 0 -> 
         write('The decay has consumed your arms entirely. Flesh sloughs from bone as'), nl,
         write('your limbs are reduced to twisted, useless appendages. The rot continues'), nl,
@@ -499,11 +659,6 @@ light_torch :-
     write('You already have a lit torch.'),
     nl, !.
 
-light_torch :-
-    (\+ inventory(torch, _); inventory(torch, 0)),
-    write('You don\'t have a torch to light.'),
-    nl.
-
 update_torch :-
     torch_lit,
     torch_remaining(T),
@@ -513,7 +668,7 @@ update_torch :-
     assert(torch_remaining(T1)),
     nl,
     write('Your torch burns dimmer. '), write(T1), write(' turns remaining.'),
-    nl.
+    nl, !.
 
 update_torch :-
     torch_lit,
@@ -523,7 +678,7 @@ update_torch :-
     retract(torch_lit),
     nl,
     write('Your torch flickers and dies, plunging you into darkness.'),
-    nl.
+    nl, !.
 
 update_torch.
 
@@ -621,12 +776,13 @@ describe(alchemy_lab) :-
     write('Among the debris on the main table, you notice four small vials of different colors: blue, green, purple, and red.'), nl.
 
 describe(fork1) :-
-    write('You stand at a grim intersection where three pathways meet.'), nl,
+    write('You stand at a grim intersection where multiple pathways meet.'), nl,
     write('The air is stagnant here, heavy with the scent of mold and decay.'), nl,
     write('Carved into the weathered stone walls are strange symbols - warnings, perhaps,'), nl,
     write('or invocations to forgotten deities that once held sway in these depths.'), nl,
     write('To the west, an unfamiliar odor wafts from the darkness.'), nl,
     write('Eastward, you hear distant, rhythmic chanting that raises the hair on your neck.'), nl,
+    write('Northward, the passage descends deeper, and a trail of dark, congealed blood disappears into the shadows.'), nl,
     write('The floor is marked with countless scratches, as if something was dragged through here repeatedly.'), nl.
 
 describe(kitchen) :-
@@ -657,4 +813,66 @@ describe(chapel) :-
     write('strange blue flames, casting grotesque shadows of the dead priest''s body across the walls.'), nl,
     write('The air feels heavier, as if the ritual space has been further corrupted by the violent death.'), nl,
     write('A low, almost subsonic humming emanates from somewhere beneath the altar.'), nl,
+    !.
+
+describe(library) :-
+    write('You enter a library filled with dust-covered tomes and scrolls.'), nl,
+    write('Towering bookshelves stretch toward the shadowed ceiling, some tilting precariously under the weight of knowledge.'), nl,
+    write('Parchment scrolls and leather-bound volumes lie scattered across tables and the floor.'), nl,
+    write('Many books are bound in materials that don''t appear to be ordinary leather.'), nl,
+    write('Strange symbols have been scratched into the stone floor, forming a pattern that seems'), nl,
+    write('to converge at the center of the room where a reading podium stands.'), nl,
+    write('Some sections of the bookshelves appear burned, and you notice dark stains trailing'), nl,
+    write('from several tomes as if they had bled.'), nl,
+    write('The air feels heavy with forgotten wisdom and forbidden knowledge.'), nl.
+
+describe(fork2) :-
+    write('You reach another grim intersection, deeper into the catacombs.'), nl,
+    write('The air here is thick with the scent of damp stone and something faintly metallic.'), nl,
+    write('From the western passage, you hear heavy, rhythmic breathing - something large slumbers there.'), nl,
+    write('To the east, faint whimpers and the distant clink of chains echo through the darkness.'), nl,
+    write('The northern corridor slopes gently downward, carrying the scent of ancient death.'), nl,
+    write('The walls here bear marks of violence - deep gouges in the stone and what appear to be'), nl,
+    write('handprints made in dried blood. The trail continues here growing fresher'), nl,
+    write('and more abundant as it disappears down the eastern passage.'), nl.
+
+describe(jail) :-
+    write('You enter a dank prison chamber carved from the living stone.'), nl,
+    write('Three cells line the far wall, their rusted iron bars casting skeletal shadows in your light.'), nl,
+    write('In the first cell, a gaunt figure sits motionless in the corner, eyes reflecting your light'), nl,
+    write('like those of a nocturnal beast. He makes no sound, but never breaks his stare.'), nl,
+    write('The middle cell contains the withered corpse of what might have once been a man,'), nl,
+    write('now little more than leathery skin stretched over a crooked frame.'), nl,
+    write('From the third cell, a trembling voice whispers: "Please... help me... He... This thing...'), nl,
+    write('what he did to the others... oh gods... please..."'), nl,
+    write('The trail of blood leads to a dark passage on the northern wall,'), nl,
+    write('disappearing into shadows so thick they seem to devour your light.'), nl,
+    write('Countless handprints in dried blood mark the stone around the entrance.'), nl.
+
+describe(torture_chamber) :-
+    write('You enter a chamber of horrors. The air reeks of blood, excrement, and fear.'), nl,
+    write('In the center of the room, suspended from the ceiling by rusted chains,'), nl,
+    write('hangs what was once a man. His body is a canvas of methodical mutilation,'), nl,
+    write('skin flayed in precise patterns. Blood still drips slowly from his wounds,'), nl,
+    write('forming a dark pool beneath him. His eyes are open but unseeing - death approaches,'), nl,
+    write('but has not yet granted mercy.'), nl,
+    write('Against the far wall stands a weapons rack containing a corroded sword.'), nl.
+
+describe(guard_quarters) :-
+    at(sleeping_guard, guard_quarters),
+    write('You enter what appears to be living quarters for whatever guards this forsaken place.'), nl,
+    write('Several bunks line the walls, most collapsed with age and decay.'), nl,
+    write('A wooden cabinet against one wall holds numerous bottles of spirits, some still sealed.'), nl,
+    write('In the center of the room, sprawled across a massive iron-framed bed, lies what first appears'), nl,
+    write('to be a guard in enormous plate armor.'), nl,
+    !.
+
+describe(guard_quarters) :-
+    at(dead_guard, guard_quarters),
+    write('The guard quarters are now dominated by the fallen form of the mutated guard.'), nl,
+    write('Its body continues to dissolve where the acid made contact, revealing a disturbing'), nl,
+    write('amalgamation of metal, flesh, and something else entirely beneath the armor.'), nl,
+    write('Black ichor pools around the corpse, bubbling occasionally as if still alive.'), nl,
+    write('Several bunks line the walls, most collapsed with age and decay.'), nl,
+    write('The air feels lighter somehow, as if a malevolent presence has been removed.'), nl,
     !.
