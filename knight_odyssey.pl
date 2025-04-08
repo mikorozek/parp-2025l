@@ -753,7 +753,7 @@ update_torch :-
 
 update_torch.
 
-info :-
+status :-
     write('Status:'), nl,
     write('Sanity: '), sanity(S), write(S), write('%'), nl,
     write('Hunger: '), hunger(H), write(H), write('%'), nl,
@@ -773,7 +773,7 @@ list_inventory :-
 
 list_inventory.
 
-instructions :-
+help :-
     nl,
     write('Enter commands using standard Prolog syntax.'), nl,
     write('Available commands are:'), nl,
@@ -782,8 +782,8 @@ instructions :-
     write('examine(Object).             -- to display info about an item.'), nl,
     write('use(Object).                 -- to use an object.'), nl,
     write('look.                        -- to look around you again.'), nl,
-    write('info.                        -- to display info about your inventory and status.'), nl,
-    write('instructions.                -- to see this message again.'), nl,
+    write('status.                      -- to display info about your inventory and status.'), nl,
+    write('help.                        -- to see this message again.'), nl,
     write('halt.                        -- to end the game and quit.'), nl,
     nl.
 
