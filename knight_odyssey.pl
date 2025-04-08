@@ -1,4 +1,4 @@
-:- dynamic i_am_at/1, at/2, inventory/2, sanity/1, hunger/1, torch_lit/0, torch_remaining/1, decay_no_pickup/0, hallucinating/0, decaying_hands/0, decay_turns/1.
+:- dynamic i_am_at/1, at/2, path/3, inventory/2, sanity/1, hunger/1, torch_lit/0, torch_remaining/1, decay_no_pickup/0, hallucinating/0, decaying_hands/0, decay_turns/1, artifacts_placed/1.
 
 init_game :-
     retractall(at(_, _)),
@@ -10,6 +10,7 @@ init_game :-
     retractall(hallucinating),
     retractall(decaying_hands),
     retractall(decay_turns(_)),
+    retractall(artifacts_placed(_)),
     assert(i_am_at(dungeon_entrance)),
     assert(at(torch, dungeon_entrance)),
     assert(at(dungeon_entrance_note, dungeon_entrance)),
@@ -39,32 +40,36 @@ init_game :-
     assert(at(sleeping_guard, guard_quarters)),
     assert(at(whisky, guard_quarters)),
     assert(at(vodka, guard_quarters)),
+    assert(at(cube_artifact, crypt)),
+    assert(path(dungeon_entrance, n, main_hall)),
+    assert(path(main_hall, s, dungeon_entrance)),
+    assert(path(main_hall, e, dark_room1)),
+    assert(path(dark_room1, beneath, pit_bottom)),
+    assert(path(dark_room1, w, main_hall)),
+    assert(path(main_hall, w, alchemy_lab)),
+    assert(path(alchemy_lab, e, main_hall)),
+    assert(path(main_hall, n, fork1)),
+    assert(path(fork1, s, main_hall)),
+    assert(path(fork1, w, kitchen)),
+    assert(path(kitchen, e, fork1)),
+    assert(path(fork1, e, chapel)),
+    assert(path(chapel, w, fork1)),
+    assert(path(chapel, s, library)),
+    assert(path(library, n, chapel)),
+    assert(path(fork1, n, fork2)),
+    assert(path(fork2, s, fork1)),
+    assert(path(fork2, w, guard_quarters)),
+    assert(path(guard_quarters, e, fork2)),
+    assert(path(fork2, e, jail)),
+    assert(path(jail, w, fork2)),
+    assert(path(jail, n, torture_chamber)),
+    assert(path(torture_chamber, s, jail)),
+    assert(path(fork2, n, crypt)),
+    assert(path(crypt, s, fork2)),
     assert(sanity(100)),
-    assert(hunger(0)).
+    assert(hunger(0)),
+    assert(artifacts_placed(0)).
 
-path(dungeon_entrance, n, main_hall).
-path(main_hall, s, dungeon_entrance).
-path(main_hall, e, dark_room1).
-path(dark_room1, beneath, pit_bottom).
-path(dark_room1, w, main_hall).
-path(main_hall, w, alchemy_lab).
-path(alchemy_lab, e, main_hall).
-path(main_hall, n, fork1).
-path(fork1, s, main_hall).
-path(fork1, w, kitchen).
-path(kitchen, e, fork1).
-path(fork1, e, chapel).
-path(chapel, w, fork1).
-path(chapel, s, library).
-path(library, n, chapel).
-path(fork1, n, fork2).
-path(fork2, s, fork1).
-path(fork2, w, guard_quarters).
-path(guard_quarters, e, fork2).
-path(fork2, e, jail).
-path(jail, w, fork2).
-path(jail, n, torture_chamber).
-path(torture_chamber, s, jail).
 
 examine(X) :-
     (inventory(X, Qty), Qty > 0) -> 
@@ -94,12 +99,12 @@ examine_item(statue) :-
     write('A grotesque effigy carved from obsidian-black stone. The deity it depicts defies comprehension -'), nl,
     write('part human, yet wrong in ways your mind struggles to process. Multiple limbs emerge at impossible'), nl,
     write('angles, and its face bears too many eyes, arranged in a pattern that makes your vision swim.'), nl,
-    write('You\'ve never encountered anything resembling this entity in any religious text or traveler\'s tale.'), nl,
+    write('You''ve never encountered anything resembling this entity in any religious text or traveler''s tale.'), nl,
     write('The base of the statue contains three distinct recesses, shaped to hold three specific objects:'), nl,
     write('- a cube'), nl,
     write('- a pyramid'), nl,
     write('- a sphere'), nl,
-    write('Looking closer, you notice scrape marks on the stone floor around the statue\'s base,'), nl,
+    write('Looking closer, you notice scrape marks on the stone floor around the statue''s base,'), nl,
     write('suggesting it has been moved recently. The pattern of the marks hints that the statue'), nl,
     write('might conceal something hidden beneath it.'), nl.
 
@@ -190,6 +195,14 @@ examine_item(sphere_artifact) :-
     write('When you look closely, you see pinpricks of light deep within, like distant stars.'), nl,
     write('This appears to match one of the recesses in the statue base you saw in the main hall.'), nl.
 
+examine_item(cube_artifact) :-
+    write('A perfect cube of obsidian-black stone. When you touch it, visions of unspeakable'), nl,
+    write('horror flood your mind - people transformed into twisted amalgamations of flesh and metal,'), nl,
+    write('rituals performed on living subjects whose screams echo through eternity.'), nl,
+    write('It feels unnaturally cold to the touch, and somehow heavier than its size would suggest.'), nl,
+    write('This appears to match one of the recesses in the statue base you saw in the main hall.'), nl,
+    decrease_sanity(5).
+
 examine_item(alchemy_techniques) :-
     write('A weathered tome with a cracked leather spine. The pages detail ancient alchemical processes.'), nl,
     write('You find several relevant sections:'), nl,
@@ -230,7 +243,7 @@ examine_item(horrified_man) :-
     write('The man cowers in the far corner of his cell as you approach.'), nl,
     write('His once-fine clothes hang in tatters, and his body bears countless small, precise cuts.'), nl,
     write('His eyes are wide with terror as he whispers urgently: "They take us one by one...'), nl,
-    write('down that passage... we hear the screams... then nothing. The guard...'), nl,
+    write('down that passage... we hear the screams... then nothing. The guard..."'), nl,
     write('He clutches something small and metallic in his trembling hands, hiding it'), nl,
     write('whenever he hears a sound from the passage. "I found a beautiful sphere in this place, black as night.'), nl,
     write('That thing... the guard... took it from me. Said it belonged to his master..."'), nl.
@@ -268,6 +281,7 @@ examine_item(vodka) :-
     write('The strong smell of alcohol burns your nostrils when you remove the cork.'), nl,
     write('Drinking this might provide temporary relief for your fraying nerves.'), nl.
 
+
 take(X) :-
     member(X, [statue, pit, escape_attempt, priest, dead_priest, silent_figure, human_remains, horrified_man, dying_prisoner, sleeping_guard]), 
     write('You cannot take that with you.'),
@@ -285,7 +299,7 @@ take(pyramid_artifact) :-
     at(pyramid_artifact, chapel),
     retract(at(pyramid_artifact, chapel)),
     assert(inventory(pyramid_artifact, 1)),
-    write('You take the stone pyramid from the altar, feeling its cold weight in your hand.'), nl.
+    write('You take the stone pyramid from the altar, feeling its cold weight in your hand.'), nl, !.
 
 take(pyramid_artifact) :-
     i_am_at(chapel),
@@ -329,11 +343,6 @@ take(X) :-
 use(X) :-
     member(X, [dungeon_entrance_note, alchemy_techniques, merthveer]), 
     write('This item can only be examined, not used.'),
-    nl, !.
-
-use(X) :-
-    member(X, [pyramid_artifact, sphere_artifact]), 
-    write('This item can only be used, in the main hall.'),
     nl, !.
 
 use(X) :-
@@ -486,6 +495,45 @@ use_item(corroded_dagger) :-
 use_item(corroded_dagger) :-
     write('You test the edge of the dagger. Despite its corrosion, it remains surprisingly sharp.'), nl.
 
+use_item(pyramid_artifact) :-
+    i_am_at(main_hall),
+    consume_item(pyramid_artifact),
+    write('You carefully place the pyramid artifact into the matching recess in the statue base.'), nl,
+    write('It fits perfectly, and you hear a faint click as it locks into place.'), nl,
+    write('The air grows colder, and whispers fill your mind momentarily. The statue''s eyes briefly glow red.'), nl,
+    increase_placed_artifacts,
+    check_all_artifacts_placed, !.
+
+use_item(sphere_artifact) :-
+    i_am_at(main_hall),
+    consume_item(sphere_artifact),
+    write('You carefully place the sphere artifact into the matching recess in the statue base.'), nl,
+    write('The sphere settles with an ominous hum, and you hear a faint click as it locks into place.'), nl,
+    write('The ground beneath you trembles slightly. You notice drops of a black, viscous liquid'), nl,
+    write('beginning to seep from the statue''s mouth.'), nl,
+    increase_placed_artifacts,
+    check_all_artifacts_placed, !.
+
+use_item(cube_artifact) :-
+    i_am_at(main_hall),
+    consume_item(cube_artifact),
+    write('You carefully place the cube artifact into the matching recess in the statue base.'), nl,
+    write('As the cube slots into place, the entire chamber resonates with a deep, subsonic tone.'), nl,
+    write('Shadows in the room appear to elongate, stretching toward the statue. You feel an'), nl,
+    write('uncomfortable pressure in your head, as if something is probing your thoughts.'), nl,
+    decrease_sanity(10),
+    increase_placed_artifacts,
+    check_all_artifacts_placed, !.
+
+use_item(pyramid_artifact) :-
+    write('This artifact seems to match one of the recesses in the statue in the main hall.'), nl.
+
+use_item(sphere_artifact) :-
+    write('This artifact seems to match one of the recesses in the statue in the main hall.'), nl.
+
+use_item(cube_artifact) :-
+    write('This artifact seems to match one of the recesses in the statue in the main hall.'), nl.
+
 use_item(X) :-
     consume_item(X),
     write('You use the '), write(X), write(', but nothing happens.'), nl.
@@ -500,8 +548,27 @@ consume_item(X) :-
         true
     ).
 
+increase_placed_artifacts :-
+    artifacts_placed(Count),
+    NewCount is Count + 1,
+    retract(artifacts_placed(Count)),
+    assert(artifacts_placed(NewCount)).
+
+check_all_artifacts_placed :-
+    artifacts_placed(3),
+    write('As the final artifact is placed, the statue begins to tremble violently.'), nl,
+    write('The eyes of the deity blaze with unholy light, and the mouth opens wider, disgorging'), nl,
+    write('a torrent of black ichor that pools around the base.'), nl,
+    write('With a grinding sound of stone against stone, the floor beneath the statue'), nl,
+    write('splits open, revealing an impossibly narrow, spiral staircase carved into the bedrock.'), nl,
+    write('The steps are worn and treacherously steep, descending at an unnatural angle into absolute darkness.'), nl,
+    write('A cold draft rises from below, carrying whispers in a language you cannot comprehend.'), nl,
+    write('The descent appears hazardous, but now accessible.'), nl,
+    assert(path(main_hall, beneath, inner_sanctum)), !.
+
+check_all_artifacts_placed.
+
 update_status :-
-    increase_hunger(1),
     (hallucinating -> 
         decrease_sanity(4),
         hallucinate
@@ -510,6 +577,7 @@ update_status :-
     ),
     check_decaying_hands,
     check_game_state,
+    increase_hunger(3),
     update_torch, !.
 
 increase_hunger(Amount) :-
@@ -518,8 +586,10 @@ increase_hunger(Amount) :-
     retract(hunger(Current)),
     assert(hunger(NewValue)),
     (NewValue >= 80 -> 
+        nl,
         write('Your stomach twists painfully with hunger.'), nl
     ; NewValue >= 50 ->
+        nl,
         write('You feel hungry.'), nl
     ; true).
 
@@ -603,6 +673,7 @@ check_decaying_hands.
 
 hallucinate :-
     random(1, 6, R),
+    nl,
     hallucination(R).
 
 hallucination(1) :-
@@ -706,15 +777,14 @@ instructions :-
     nl,
     write('Enter commands using standard Prolog syntax.'), nl,
     write('Available commands are:'), nl,
-    write('start.             -- to start the game.'), nl,
-    write('n.  s.  e.  w.  beneath.     -- to go in that direction.'), nl,
-    write('take(Object).      -- to pick up an object.'), nl,
-    write('examine(Object).   -- to display info about an item.'), nl,
-    write('use(Object).       -- to use an object.'), nl,
-    write('look.              -- to look around you again.'), nl,
-    write('info.              -- to display info about your inventory and status.'), nl,
-    write('instructions.      -- to see this message again.'), nl,
-    write('halt.              -- to end the game and quit.'), nl,
+    write('n.  s.  e.  w.  descend.     -- to go in that direction.'), nl,
+    write('take(Object).                -- to pick up an object.'), nl,
+    write('examine(Object).             -- to display info about an item.'), nl,
+    write('use(Object).                 -- to use an object.'), nl,
+    write('look.                        -- to look around you again.'), nl,
+    write('info.                        -- to display info about your inventory and status.'), nl,
+    write('instructions.                -- to see this message again.'), nl,
+    write('halt.                        -- to end the game and quit.'), nl,
     nl.
 
 intro :-
@@ -876,3 +946,38 @@ describe(guard_quarters) :-
     write('Several bunks line the walls, most collapsed with age and decay.'), nl,
     write('The air feels lighter somehow, as if a malevolent presence has been removed.'), nl,
     !.
+
+describe(crypt) :-
+    write('You enter an ancient crypt, the air thick with the stench of death and decay.'), nl,
+    write('Stone sarcophagi line the walls, their carved lids depicting the tortured faces of those within.'), nl,
+    write('Most have been desecrated, broken open by force, with desiccated remains spilling onto the floor.'), nl,
+    write('In the center of the chamber stands a raised altar of black stone, its surface stained with ancient blood.'), nl,
+    write('Upon it rests a perfect cube of obsidian-black stone.'), nl,
+    write('From somewhere within the sealed sarcophagi, you hear faint scratching sounds, as if something is trying to get out.'), nl,
+    write('Whispers fill your mind when you focus on the obsidian cube, promising terrible knowledge and power.'), nl,
+    write('The floor beneath your feet feels unnaturally warm, and the shadows in the corners seem to move of their own accord.'), nl.
+
+describe(inner_sanctum) :-
+    write('You carefully navigate the treacherous spiral staircase, your hands pressed against'), nl,
+    write('the damp stone walls for balance. The steps are unnaturally steep and narrow,'), nl,
+    write('forcing you to descend sideways while hunched over.'), nl,
+    write('After what seems like an eternity of careful descent, the staircase opens into a vast chamber.'), nl,
+    write('Your torch illuminates a horrific scene before you. The chamber is vast, its ceiling lost to darkness.'), nl,
+    write('Massive columns rise like petrified trees, carved with scenes of torture and transformation.'), nl,
+    write('The floor is slick with black ichor that pulses with subtle movement.'), nl,
+    write('And there, sprawled before an obsidian altar, lies the broken body of Sir Galahad.'), nl,
+    write('His once-proud armor is shattered, the metal twisted and fused with his flesh in places.'), nl,
+    write('His face, frozen in an expression of absolute horror, bears signs of transformation - '), nl,
+    write('skin stretched too tight over elongated features, eyes sunken yet somehow too large.'), nl,
+    write('Clutched in his deformed hand is the Chalice of Immaculate Tears, its crystalline surface'), nl,
+    write('glimmering with unholy light. The liquid within moves against gravity, occasionally forming'), nl,
+    write('shapes that resemble faces screaming in agony.'), nl,
+    write('As you approach, Sir Galahad''s corpse twitches. His head turns with a sickening crack,'), nl,
+    write('dead eyes fixing on yours. His jaw drops, dislocating with the movement, and'), nl,
+    write('a voice that is not his whispers: "You are too late, squire. The king is already ours."'), nl,
+    write('Darkness claims your vision as clawed hands grasp you from behind.'), nl,
+    write('Some things are not meant to be found. Some quests are not meant to succeed.'), nl,
+    write('Your story ends here, in the darkness beneath the earth, joining the countless others'), nl,
+    write('who came seeking power, salvation, or knowledge.'), nl,
+    write('THE END'), nl,
+    halt.
