@@ -802,7 +802,7 @@ intro :-
 start :-
     init_game,
     intro,
-    instructions,
+    help,
     look.
 
 describe(dungeon_entrance) :-
