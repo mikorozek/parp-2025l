@@ -1062,16 +1062,22 @@ gameLoop = do
     liftIO $ putStr "> "
     liftIO $ hFlush stdout
     cmd <- liftIO getLine
-    parseCommand cmd
-    -- Update status after most commands, except purely informational ones or quit
-    let passiveCommands = ["help", "status", "inventory", "i", "quit", "look", "l"] 
-                        
-    let firstWord = if null (words cmd) then "" else head (words (map toLower cmd))
-    unless (firstWord `elem` passiveCommands || null cmd) $
-        updateGameStatus
-    flushMessages
-    gameLoop
 
+    parseCommand cmd
+    gsAfterParse <- get 
+
+
+    let passiveCommands = ["help", "status", "inventory", "i", "quit", "look", "l"]
+    let firstWord = if null (words cmd) then "" else head (words (map toLower cmd))
+
+  
+    unless (gameShouldEnd gsAfterParse || firstWord `elem` passiveCommands || null cmd) $
+        updateGameStatus
+    
+    flushMessages
+
+    gameLoop 
+    
 main :: IO ()
 main = do
   printIntroduction
