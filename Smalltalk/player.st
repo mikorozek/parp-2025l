@@ -1,5 +1,5 @@
 Object subclass: Player [
-    | currentLocation inventory game |
+    | currentLocation inventory game sanity hunger |
 
     Player class >> new [
         | g |
@@ -9,8 +9,10 @@ Object subclass: Player [
     ]
 
     init [
+        sanity := 100.
+        hunger := 0.
         currentLocation := nil.
-        inventory := Array new.
+        inventory := Dictionary new.
     ]
 
     changeLocation: location [
@@ -32,33 +34,90 @@ Object subclass: Player [
                 game printLines: #('You cannot go that way.' '').
             ].
         ].
+        self modifySanityBy: -2.
+        self modifyHungerBy: 2.
     ]
 
     game: aGame [
         game := aGame.
     ]
 
-    addItem: newItem [
-        inventory := inventory copyWith: newItem.
+    addItem: anItem [
+        inventory at: anItem name put: anItem.
     ]
 
-    removeItem: item [
-        inventory remove: item.
-    ]
-
-    hasItem: item [
-        ^ inventory includes: item.
-    ]
-
-    showPosition [
-        currentLocation printNl.
-    ]
-
-    showInventory [
-        Transcript show: 'Inventory: '.
-        inventory do: [:item |
-            Transcript show: item named, ' '.
+    removeItemNamed: anItemName [
+        ^ inventory removeKey: anItemName ifAbsent: [ 
         ].
-        Transcript cr.
+    ]
+
+    itemInInventoryNamed: anItemName [
+        ^ inventory at: anItemName ifAbsent: [ nil ].
+    ]
+
+    inventoryItems [
+        ^ inventory values.
+    ]
+
+    showStatus [
+        game printLines: #('Inventory:').
+
+        self inventoryItems isEmpty ifTrue: [
+            game printLines: #('  Nothing.')
+        ] ifFalse: [
+            self inventoryItems do: [ :eachItem |
+                | itemNameString line |
+                itemNameString := eachItem name asString.
+                line := '  - ', itemNameString, ' (1)'.
+                game printLines: (Array with: line).
+            ].
+        ].
+        game printLines: (Array with: ('Sanity: ', sanity asString, '%')).
+        game printLines: (Array with: ('Hunger: ', hunger asString, '%')).
+    ]
+
+    modifySanityBy: anAmount [
+        sanity := (sanity + anAmount).
+        sanity < 0 ifTrue: [ sanity := 0 ].
+        sanity > 100 ifTrue: [ sanity := 100 ].
+    ]
+
+    modifyHungerBy: anAmount [
+        hunger := (hunger + anAmount).
+        hunger < 0 ifTrue: [ hunger := 0 ].
+        hunger > 100 ifTrue: [ hunger := 100 ].
+    ]
+
+    checkPlayerStatus [
+        hunger >= 100 ifTrue: [
+            game printLines: #(
+                'Overwhelming hunger causes you to collapse. Your body is too weak to continue.'
+                'GAME OVER'
+            ).
+            game gameOver.
+        ].
+        sanity <= 0 ifTrue: [
+            game printLines: #(
+                'The darkness starts to consume your mind entirely. You collapse to the floor,'
+                'clawing at your own skin, desperate to escape the horrors in your mind.'
+                'Your journey ends here, lost in madness beneath the earth.'
+                'GAME OVER'
+            ).
+            game gameOver.
+        ].
+    ]
+
+    hasWeaponItem [
+        inventory values do: [ :item |
+            (item isKindOf: WeaponItem) ifTrue: [ ^ true ].
+        ].
+        ^ false
+    ]
+
+    getAWeaponItem [
+        inventory values do: [ :item |
+            (item isKindOf: WeaponItem) ifTrue: [ ^ item ].
+        ].
+        ^ nil
     ]
 ]

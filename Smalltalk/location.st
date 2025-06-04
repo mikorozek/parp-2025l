@@ -38,8 +38,8 @@ Object subclass: Location [
         items at: item name put: item.
     ]
 
-    removeItem: itemName [
-        ^ items removeKey: itemName ifAbsent: [ nil ].
+    removeItemNamed: anItemName [
+        ^ items removeKey: anItemName ifAbsent: [ nil ].
     ]
 
     locationInGivenDirection: direction [
@@ -73,15 +73,73 @@ Object subclass: Location [
         ^ resultStrings asArray.
     ]
 
-    getDescriptionForItemNamed: itemName [
-        | item |
-        item := items at: itemName ifAbsent: [ nil ].
-        item ifNotNil: [
-            ^ item description
-        ]
-        ifNil: [
-            ^ Array with: ('You dont see any ', itemName asString, ' here to examine.')
-        ]
+    getItemNamed: itemName [
+        ^ items at: itemName asSymbol ifAbsent: [ nil ].
     ]
 ]
 
+Location subclass: StatueRoom [
+    | artifactsPlacedCount maxArtifacts isPassageOpen pathNameToInnerSanctum innerSanctumLocationName |
+
+    StatueRoom class >> new [
+        | instance |
+        instance := super new.
+        instance initializeStatueRoom.
+        ^ instance.
+    ]
+
+    initializeStatueRoom [
+        artifactsPlacedCount := 0.
+        maxArtifacts := 3.
+        isPassageOpen := false.
+        pathNameToInnerSanctum := 'beneath.'.
+        innerSanctumLocationName := #inner_sanctum.
+    ]
+
+    maxArtifacts: anInteger [ maxArtifacts := anInteger ]
+    pathNameToInnerSanctum: aString [ pathNameToInnerSanctum := aString ]
+    innerSanctumLocationName: aSymbol [ innerSanctumLocationName := aSymbol ]
+
+    placeArtifact: anArtifactItem byPlayer: aPlayer inGame: aGame [
+        Transcript show: 'StatueRoom: Placing artifact: '; show: anArtifactItem name; cr.
+
+        aGame printLines: anArtifactItem placementMessages.
+
+        (anArtifactItem sanityChangeOnPlace ~= 0) ifTrue: [
+            aPlayer modifySanityBy: anArtifactItem sanityChangeOnPlace.
+        ].
+        
+        aPlayer removeItemNamed: anArtifactItem name.
+        
+        artifactsPlacedCount := artifactsPlacedCount + 1.
+        Transcript show: 'StatueRoom: Artifacts placed count: '; show: artifactsPlacedCount; cr.
+
+        self checkAllArtifactsPlacedInGame: aGame.
+    ]
+
+    checkAllArtifactsPlacedInGame: aGame [
+        (isPassageOpen not and: [artifactsPlacedCount >= maxArtifacts])
+            ifTrue: [
+                isPassageOpen := true.
+                aGame printLines: #(
+                    'As the final artifact is placed, the statue begins to tremble violently.'
+                    'The eyes of the deity blaze with unholy light, and the mouth opens wider, disgorging'
+                    'a torrent of black ichor that pools around the base.'
+                    'With a grinding sound of stone against stone, the floor beneath the statue'
+                    'splits open, revealing an impossibly narrow, spiral staircase carved into the bedrock.'
+                    'The steps are worn and treacherously steep, descending at an unnatural angle into absolute darkness.'
+                    'A cold draft rises from below, carrying whispers in a language you cannot comprehend.'
+                    'The descent appears hazardous, but now accessible.'
+                ).
+                | innerSanctumTarget |
+                innerSanctumTarget := Smalltalk at: innerSanctumLocationName ifAbsent: [
+                    Transcript show: 'CRITICAL ERROR: Target location for new path not found: '; show: innerSanctumLocationName; cr.
+                    nil
+                ].
+                innerSanctumTarget ifNotNil: [
+                    self addPath: pathNameToInnerSanctum to: innerSanctumTarget.
+                    Transcript show: 'DEBUG: Path to '; show: innerSanctumLocationName; show: ' opened from '; show: self name; cr.
+                ].
+            ]
+    ]
+]

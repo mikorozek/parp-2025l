@@ -31,11 +31,16 @@ Object subclass: Game [
     instructionsText := #(
         'Available commands are:'
         ''
-        'instructions  -- to see these instructions.'
-        'paths         -- to see available paths from your current location.'
-        'items         -- to see available items in your current location.'
-        'quit          -- to end the game and quit.'
-        'n.  s.  e.  w.  beneath.     -- to go in that direction.'
+        'instructions         -- to see these instructions.'
+        'paths                -- to see available paths from your current location.'
+        'items                -- to see available items in your current location.'
+        'status               -- to display info about your inventory and status.'
+        'look                 -- to look around you again.'
+        'examine <item_name>  -- to display info about an item.'
+        'take <item_name>     -- to pick up an item.'
+        'use <item_name>      -- to use an item from your inventory.'
+        'quit                 -- to end the game and quit.'
+        'n.  s.  e.  w.  beneath. -- to go in that direction.'
         ''
     ).
  
@@ -56,6 +61,18 @@ Object subclass: Game [
 
     isPriestAlive [
         ^ isPriestAlive
+    ]
+
+    setPriestAsDead [
+        isPriestAlive := false.
+    ]
+
+    setGuardAsDead [
+        isGuardAlive := false.
+    ]
+
+    gameOver [
+        isGameOver := true.
     ]
 
     init [
@@ -89,7 +106,7 @@ Object subclass: Game [
 
     "Run the game."
     run [
-        | cmd cmdParts isUnknown itemNameString |
+        | cmd cmdParts isUnknown itemName foundItemOrNil |
 
         self printIntroduction.
         self printInstructions.
@@ -126,16 +143,56 @@ Object subclass: Game [
                 isUnknown := false.
             ].
 
-            (cmdParts size = 2 and: [cmdParts first = 'examine']) ifTrue: [
-                itemNameString := cmdParts second.
-                self printLines: (player currentLocation getDescriptionForItemNamed: (itemNameString asSymbol)).
+            cmd = 'status' ifTrue: [
+                player showStatus.
                 isUnknown := false.
             ].
-                
+
+            (cmdParts size = 2 and: [cmdParts first = 'examine']) ifTrue: [
+                itemName := cmdParts second.
+                foundItemOrNil := player currentLocation getItemNamed: itemName.
+                foundItemOrNil
+                ifNil: [
+                    self printLines: (Array with: ('You dont see any ', itemName, ' here to examine.')).
+                ]
+                ifNotNil: [
+                    foundItemOrNil handleExamineAttemptBy: player inGame: self.
+                ].
+                isUnknown := false.
+            ].
+
+            (cmdParts size = 2 and: [cmdParts first = 'take']) ifTrue: [
+                itemName := cmdParts second.
+                foundItemOrNil := player currentLocation getItemNamed: itemName.
+                foundItemOrNil
+                ifNil: [
+                    self printLines: (Array with: ('You dont see any ', itemName, ' here to take.')).
+                ]
+                ifNotNil: [
+                    foundItemOrNil handleTakeAttemptBy: player inGame: self.
+                ].
+                isUnknown := false.
+            ].
+
+            (cmdParts size >= 2 and: [cmdParts first = 'use']) ifTrue: [
+                itemName := cmdParts second.
+                foundItemOrNil := player itemInInventoryNamed: itemName asSymbol.
+                foundItemOrNil
+                    ifNil: [
+                        self printLines: (Array with: ('You don''t have any ', itemName asString, ' in your inventory to use.')).
+                    ]
+                    ifNotNil: [
+                        Transcript show: 'DEBUG: Using item: '; show: foundItemOrNil name; show: ' of class: '; show: foundItemOrNil class name; cr.
+                        foundItemOrNil handleUseAttemptBy: player inGame: self.
+                    ].
+                isUnknown := false.
+
             isUnknown ifTrue: [
                 self printLines: #('Unknown command.' '').
 
-            ]
+            ].
+
+            player checkPlayerStatus.
         ]
     ]
 ]
