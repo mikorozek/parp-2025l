@@ -79,7 +79,7 @@ Object subclass: Location [
 ]
 
 Location subclass: StatueRoom [
-    | artifactsPlacedCount maxArtifacts isPassageOpen pathNameToInnerSanctum innerSanctumLocationName |
+    | artifactsPlacedCount maxArtifacts pathNameToInnerSanctum innerSanctumLocationName innerSanctumTarget |
 
     StatueRoom class >> new [
         | instance |
@@ -90,19 +90,24 @@ Location subclass: StatueRoom [
 
     initializeStatueRoom [
         artifactsPlacedCount := 0.
-        maxArtifacts := 3.
-        isPassageOpen := false.
+        maxArtifacts := 3. 
         pathNameToInnerSanctum := 'beneath.'.
         innerSanctumLocationName := #inner_sanctum.
     ]
 
-    maxArtifacts: anInteger [ maxArtifacts := anInteger ]
-    pathNameToInnerSanctum: aString [ pathNameToInnerSanctum := aString ]
-    innerSanctumLocationName: aSymbol [ innerSanctumLocationName := aSymbol ]
+    maxArtifacts: anInteger [ 
+        maxArtifacts := anInteger 
+    ]
+
+    pathNameToInnerSanctum: aString [ 
+        pathNameToInnerSanctum := aString 
+    ]
+
+    innerSanctumLocationName: aSymbol [ 
+        innerSanctumLocationName := aSymbol 
+    ]
 
     placeArtifact: anArtifactItem byPlayer: aPlayer inGame: aGame [
-        Transcript show: 'StatueRoom: Placing artifact: '; show: anArtifactItem name; cr.
-
         aGame printLines: anArtifactItem placementMessages.
 
         (anArtifactItem sanityChangeOnPlace ~= 0) ifTrue: [
@@ -112,15 +117,13 @@ Location subclass: StatueRoom [
         aPlayer removeItemNamed: anArtifactItem name.
         
         artifactsPlacedCount := artifactsPlacedCount + 1.
-        Transcript show: 'StatueRoom: Artifacts placed count: '; show: artifactsPlacedCount; cr.
 
         self checkAllArtifactsPlacedInGame: aGame.
     ]
 
     checkAllArtifactsPlacedInGame: aGame [
-        (isPassageOpen not and: [artifactsPlacedCount >= maxArtifacts])
+        (artifactsPlacedCount >= maxArtifacts)
             ifTrue: [
-                isPassageOpen := true.
                 aGame printLines: #(
                     'As the final artifact is placed, the statue begins to tremble violently.'
                     'The eyes of the deity blaze with unholy light, and the mouth opens wider, disgorging'
@@ -131,14 +134,12 @@ Location subclass: StatueRoom [
                     'A cold draft rises from below, carrying whispers in a language you cannot comprehend.'
                     'The descent appears hazardous, but now accessible.'
                 ).
-                | innerSanctumTarget |
-                innerSanctumTarget := Smalltalk at: innerSanctumLocationName ifAbsent: [
-                    Transcript show: 'CRITICAL ERROR: Target location for new path not found: '; show: innerSanctumLocationName; cr.
-                    nil
-                ].
+
+                innerSanctumTarget := Smalltalk at: innerSanctumLocationName.
+
                 innerSanctumTarget ifNotNil: [
                     self addPath: pathNameToInnerSanctum to: innerSanctumTarget.
-                    Transcript show: 'DEBUG: Path to '; show: innerSanctumLocationName; show: ' opened from '; show: self name; cr.
+                ] ifNil: [ Transcript show: 'DEBUG StatueRoom: innerSanctumTarget was nil. Path NOT added.'; cr.
                 ].
             ]
     ]

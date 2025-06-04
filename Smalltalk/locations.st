@@ -3,6 +3,7 @@ Game extend [
     initializeWorld [
         | dungeonEntrance mainHall darkRoom1 pitBottom alchemyLab fork1 kitchen chapel library fork2 guardQuarters jail tortureChamber crypt innerSanctum item |
 
+        "--- Tworzenie i podstawowa konfiguracja lokacji ---"
         dungeonEntrance := Location new.
         dungeonEntrance name: 'dungeon_entrance'.
         dungeonEntrance description: [
@@ -11,8 +12,10 @@ Game extend [
                 'A cold draft whispers from below, carrying with it the scent of old stone and something else...'
             )
         ].
+        Smalltalk at: #dungeon_entrance put: dungeonEntrance.
 
-        mainHall := Location new.
+        "main_hall jest teraz typu StatueRoom"
+        mainHall := StatueRoom new. "Używamy nowej klasy StatueRoom"
         mainHall name: 'main_hall'.
         mainHall description: [
             #(
@@ -26,6 +29,11 @@ Game extend [
                 'you hear the faint sound of something that might be weeping... or laughter.'
             )
         ].
+        "Dodatkowa konfiguracja dla StatueRoom, jeśli wartości domyślne nie pasują:"
+        "mainHall maxArtifacts: 3."
+        "mainHall pathNameToInnerSanctum: 'beneath.'."
+        "mainHall innerSanctumLocationName: #inner_sanctum."
+        Smalltalk at: #main_hall put: mainHall.
 
         darkRoom1 := Location new.
         darkRoom1 name: 'dark_room1'.
@@ -41,6 +49,7 @@ Game extend [
                 'some appearing to form words now too faded to read.'
             )
         ].
+        Smalltalk at: #dark_room1 put: darkRoom1.
 
         pitBottom := Location new.
         pitBottom name: 'pit_bottom'.
@@ -50,11 +59,12 @@ Game extend [
                 'You are submerged waist-deep in foul liquid at the bottom of the hole.'
                 'The walls rise impossibly high above, the entrance now just a distant pinprick of light.'
             ) asOrderedCollection.
-            (self isTorchLit)
+            (self isTorchLit) "Zakładamy, że 'self' tutaj odnosi się do obiektu Game"
                 ifTrue: [ descriptionParts add: 'Your torch struggles against the oppressive darkness of this place.' ]
                 ifFalse: [ descriptionParts add: 'The darkness here is absolute, suffocating.' ].
             descriptionParts
         ].
+        Smalltalk at: #pit_bottom put: pitBottom.
 
         alchemyLab := Location new.
         alchemyLab name: 'alchemy_lab'.
@@ -67,6 +77,7 @@ Game extend [
                 'Among the debris on the main table, you notice four small vials of different colors: blue, green, purple, and red.'
             )
         ].
+        Smalltalk at: #alchemy_lab put: alchemyLab.
 
         fork1 := Location new.
         fork1 name: 'fork1'.
@@ -82,6 +93,7 @@ Game extend [
                 'The floor is marked with countless scratches, as if something was dragged through here repeatedly.'
             )
         ].
+        Smalltalk at: #fork1 put: fork1.
 
         kitchen := Location new.
         kitchen name: 'kitchen'.
@@ -96,6 +108,7 @@ Game extend [
                 'the large butchering block in the corner. Something scurries away as you enter.'
             )
         ].
+        Smalltalk at: #kitchen put: kitchen.
 
         chapel := Location new.
         chapel name: 'chapel'.
@@ -107,7 +120,7 @@ Game extend [
                 'upon which rest strange artifacts including a small stone pyramid. Dozens of candles cast'
                 'dancing shadows across wall carvings depicting scenes of sacrifice and transformation.'
             ) asOrderedCollection.
-            (self isPriestAlive)
+            (self isPriestAlive) "Zakładamy, że 'self' tutaj odnosi się do obiektu Game"
                 ifTrue: [
                     descriptionParts addAll: #(
                         'At the altar stands a figure in tattered robes, facing away from you, muttering'
@@ -121,12 +134,13 @@ Game extend [
                         'You enter the defiled chapel, now eerily silent except for the dripping of black ichor'
                         'from the altar. The stone pyramid still rests among the ritual items. Candles burn with'
                         'strange blue flames, casting grotesque shadows of the dead priest''s body across the walls.'
-                         'The air feels heavier, as if the ritual space has been further corrupted by the violent death.'
+                        'The air feels heavier, as if the ritual space has been further corrupted by the violent death.'
                         'A low, almost subsonic humming emanates from somewhere beneath the altar.'
                     ).
                 ].
             descriptionParts
         ].
+        Smalltalk at: #chapel put: chapel.
 
         library := Location new.
         library name: 'library'.
@@ -143,6 +157,7 @@ Game extend [
                 'The air feels heavy with forgotten wisdom and forbidden knowledge.'
             )
         ].
+        Smalltalk at: #library put: library.
 
         fork2 := Location new.
         fork2 name: 'fork2'.
@@ -158,6 +173,7 @@ Game extend [
                 'and more abundant as it disappears down the eastern passage.'
             )
         ].
+        Smalltalk at: #fork2 put: fork2.
 
         guardQuarters := Location new.
         guardQuarters name: 'guard_quarters'.
@@ -186,6 +202,7 @@ Game extend [
                 ].
             descriptionParts
         ].
+        Smalltalk at: #guard_quarters put: guardQuarters.
 
         jail := Location new.
         jail name: 'jail'.
@@ -204,6 +221,7 @@ Game extend [
                 'Countless handprints in dried blood mark the stone around the entrance.'
             )
         ].
+        Smalltalk at: #jail put: jail.
 
         tortureChamber := Location new.
         tortureChamber name: 'torture_chamber'.
@@ -218,6 +236,7 @@ Game extend [
                 'Against the far wall stands a weapons rack containing a corroded sword.'
             )
         ].
+        Smalltalk at: #torture_chamber put: tortureChamber.
 
         crypt := Location new.
         crypt name: 'crypt'.
@@ -233,6 +252,7 @@ Game extend [
                 'The floor beneath your feet feels unnaturally warm, and the shadows in the corners seem to move of their own accord.'
             )
         ].
+        Smalltalk at: #crypt put: crypt.
 
         innerSanctum := Location new.
         innerSanctum name: 'inner_sanctum'.
@@ -262,7 +282,10 @@ Game extend [
                 'THE END'
             )
         ].
+        Smalltalk at: #inner_sanctum put: innerSanctum.
 
+
+        "--- Definicje ścieżek (paths) ---"
         dungeonEntrance addPath: 'n.' to: mainHall.
         mainHall addPath: 's.' to: dungeonEntrance.
         mainHall addPath: 'e.' to: darkRoom1.
@@ -288,27 +311,13 @@ Game extend [
         jail addPath: 'n.' to: tortureChamber.
         tortureChamber addPath: 's.' to: jail.
         crypt addPath: 's.' to: fork2.
-        
-        Smalltalk at: #dungeon_entrance put: dungeonEntrance.
-        Smalltalk at: #main_hall put: mainHall.
-        Smalltalk at: #dark_room1 put: darkRoom1.
-        Smalltalk at: #pit_bottom put: pitBottom.
-        Smalltalk at: #alchemy_lab put: alchemyLab.
-        Smalltalk at: #fork1 put: fork1.
-        Smalltalk at: #kitchen put: kitchen.
-        Smalltalk at: #chapel put: chapel.
-        Smalltalk at: #library put: library.
-        Smalltalk at: #fork2 put: fork2.
-        Smalltalk at: #guard_quarters put: guardQuarters.
-        Smalltalk at: #jail put: jail.
-        Smalltalk at: #torture_chamber put: tortureChamber.
-        Smalltalk at: #crypt put: crypt.
-        Smalltalk at: #inner_sanctum put: innerSanctum.
+        "Ścieżka mainHall -> innerSanctum jest dodawana dynamicznie przez StatueRoom"
+
 
         "--- Item Definitions & Placement ---"
 
         "dungeon_entrance"
-        item := TakeableItem newNamed: 'torch' described: #(
+        item := TorchItem newNamed: 'torch' described: #(
             'A wooden torch soaked in pitch. It can provide light in the darkness, but will eventually burn out.'
             'Traveling with a lit torch helps ward off the oppressive darkness, keeping your mind more peaceful.'
         ).
@@ -360,18 +369,18 @@ Game extend [
         pitBottom addItem: item.
 
         "alchemy_lab"
-        item := ConsumableItem newNamed: 'opium_powder'
+        item := OpiumPowderItem newNamed: 'opium_powder'
             described: #(
                 'A small jar containing a crude brownish powder derived from poppy seeds.'
                 'Such substances were used by medieval healers to dull pain, though none called it by this name.'
                 'The jar bears symbols suggesting it will calm the mind and ease suffering.'
             )
-            sanityEffect: 20  "Prolog: increase_sanity(20)"
+            sanityEffect: 20
             hungerEffect: 0
             usedWithDescription: #(
                 'You consume some of the opium powder. A numbing calm washes over you,'
                 'dulling the terrors of the catacombs. Your mind feels more stable.'
-                "TODO: Implement hallucination removal (Prolog: retract(hallucinating))."
+                "TODO: Implement hallucination removal."
             ).
         alchemyLab addItem: item.
 
@@ -380,7 +389,7 @@ Game extend [
                 'A vial of luminous blue liquid that seems to swirl of its own accord.'
                 'It smells faintly of sea salt and something unidentifiable.'
             )
-            sanityEffect: 100 "Special: sets sanity to 100, handled in ConsumableItem"
+            sanityEffect: 100 "Player's modifySanityBy: should cap at 100"
             hungerEffect: 0
             usedWithDescription: #(
                 'You drink the blue liquid. A wave of clarity washes over you as the catacombs'
@@ -388,17 +397,15 @@ Game extend [
             ).
         alchemyLab addItem: item.
 
-
-        "Poprawiona definicja green_vial jako GreenVialItem"
-        item := GreenVialItem newNamed: 'green_vial'
+        item := GreenVialItem newNamed: 'green_vial' "Używamy GreenVialItem"
             described: #(
                 'A viscous green substance that occasionally bubbles on its own.'
                 'It emits fumes that make your eyes water. The glass of the vial appears to be slowly'
                 'corroding from the inside.'
             )
-            sanityEffect: -999 "Domyślny efekt przy wypiciu: śmierć (drastyczny spadek sanity)"
+            sanityEffect: -999 "Lethal if drunk by player"
             hungerEffect: 0
-            usedWithDescription: #( "Ten opis jest używany, gdy gracz wypija fiolkę (super wywołanie w GreenVialItem)"
+            usedWithDescription: #( "Używane, gdy gracz wypija fiolkę"
                 'You drink the viscous green liquid, which immediately burns your throat.'
                 'To your horror, you feel it eating through your insides like acid.'
                 'Your body convulses as the corrosive substance dissolves you from within.'
@@ -406,18 +413,18 @@ Game extend [
             ).
         alchemyLab addItem: item.
 
-        item := ConsumableItem newNamed: 'purple_vial'
+        item := PurpleVialItem newNamed: 'purple_vial'
             described: #(
                 'A thick purple liquid with tiny specks of light floating within it.'
                 'The vial is pleasantly warm to the touch.'
             )
-            sanityEffect: 0 "Prolog: assert(hallucinating) - no direct sanity change specified"
+            sanityEffect: 0 
             hungerEffect: 0
             usedWithDescription: #(
                 'You drink the purple liquid. The world around you fractures into impossible geometries.'
                 'Shadows dance at the edge of your vision, and whispers fill your ears.'
                 'Reality itself seems unstable. You fear this effect may be long-lasting.'
-                "TODO: Implement hallucination state (Prolog: assert(hallucinating))."
+                "TODO: Implement hallucination state."
             ).
         alchemyLab addItem: item.
 
@@ -426,27 +433,26 @@ Game extend [
                 'A crimson fluid that looks disturbingly like blood, yet moves more slowly.'
                 'The vial pulses gently, almost like a heartbeat.'
             )
-            sanityEffect: 0 "Prolog: assert(decaying_hands) - no direct sanity change"
+            sanityEffect: 0
             hungerEffect: 0
             usedWithDescription: #(
                 'You drink the crimson liquid. At first, nothing happens.'
                 'Then your hands begin to tingle unpleasantly. Looking down, you watch in horror'
                 'as your flesh begins to rot before your eyes. The decay is spreading slowly.'
                 'You must find a way to stop it before it consumes you entirely.'
-                "TODO: Implement decaying_hands status and timer (Prolog: assert(decaying_hands), assert(decay_turns(20)))."
+                "TODO: Implement decaying_hands status and timer."
             ).
         alchemyLab addItem: item.
 
-
         "fork1"
-        item := TakeableItem newNamed: 'torch' described: #( "Druga pochodnia, taka sama jak pierwsza"
+        item := TorchItem newNamed: 'torch' described: #(
             'A wooden torch soaked in pitch. It can provide light in the darkness, but will eventually burn out.'
             'Traveling with a lit torch helps ward off the oppressive darkness, keeping your mind more peaceful.'
         ).
         fork1 addItem: item.
 
         "kitchen"
-        item := WeaponItem newNamed: 'kitchen_knife'  "POPRAWIONE: Użycie WeaponItem"
+        item := WeaponItem newNamed: 'kitchen_knife'
             described: #(
                 'A large knife with a rusty blade and rotting wooden handle. Despite its condition,'
                 'it still holds a threatening edge. Flakes of what might be dried blood cling to the blade.'
@@ -460,8 +466,8 @@ Game extend [
                 'The stench emanating from it makes your stomach turn. What kind of creature'
                 'this once was is impossible to determine.'
             )
-            sanityEffect: -10  "Prolog: decrease_sanity(10)"
-            hungerEffect: -15  "Prolog: decrease_hunger(15)"
+            sanityEffect: -10
+            hungerEffect: -15
             usedWithDescription: #(
                 'You force yourself to eat the putrid flesh. The taste is foul beyond description,'
                 'and the texture makes you gag, but it does quiet the pangs of hunger somewhat.'
@@ -477,7 +483,7 @@ Game extend [
                 'It could provide sustenance if you''re desperate enough.'
             )
             sanityEffect: 0
-            hungerEffect: -20  "Prolog: decrease_hunger(20)"
+            hungerEffect: -20
             usedWithDescription: #(
                 'You tear into the dried fish. The taste is intensely salty and'
                 'the texture leathery, but it satisfies your hunger somewhat.'
@@ -491,7 +497,7 @@ Game extend [
                 'quiet your growing hunger.'
             )
             sanityEffect: 0
-            hungerEffect: -25  "Prolog: decrease_hunger(25)"
+            hungerEffect: -25
             usedWithDescription: #(
                 'You force down the stale bread. It''s nearly impossible to chew,'
                 'but your gnawing hunger subsides somewhat.'
@@ -504,8 +510,8 @@ Game extend [
                 'sloshes thickly when you move it. The cork is partially decomposed but still'
                 'seals the contents. It might provide a temporary respite from the horrors around you.'
             )
-            sanityEffect: 15  "Prolog: increase_sanity(15)"
-            hungerEffect: 5   "Prolog: increase_hunger(5)"
+            sanityEffect: 15
+            hungerEffect: 5
             usedWithDescription: #(
                 'You pull the crumbling cork and drink deeply from the bottle.'
                 'The wine has turned to vinegar, but the alcohol still burns pleasantly,'
@@ -514,7 +520,7 @@ Game extend [
         kitchen addItem: item.
 
         "chapel"
-        item := Item newNamed: 'priest' described: #( "NPC/Scenery, non-takeable. Opis 'żywego' kapłana"
+        item := Item newNamed: 'priest' described: #(
             'The priest''s skeletal form is draped in rotting ceremonial robes adorned with'
             'strange symbols and dried bloodstains. His skin is pale and stretched too tightly'
             'across his skull. His eyes never blink as they watch your every movement.'
@@ -522,18 +528,26 @@ Game extend [
             'is not entirely under his own control. His lips constantly move in silent prayer or curse.'
         ).
         chapel addItem: item.
-        "TODO: 'dead_priest' to stan, a nie oddzielny przedmiot do umieszczenia na starcie. Logika zmiany stanu kapłana i jego opisu (a także opisu lokacji Chapel) musi być zaimplementowana."
         
-        item := TakeableItem newNamed: 'pyramid_artifact' described: #( "Quest item"
-            'A small pyramid carved from obsidian-black stone. Its surface is covered with minute'
-            'carvings that seem to shift when not viewed directly. It feels unnaturally cold to the touch,'
-            'and somehow heavier than its size would suggest. This appears to match one of the recesses'
-            'in the statue base you saw in the main hall.'
-        ).
+        item := PyramidArtifactItem newNamed: 'pyramid_artifact'
+            described: #(
+                'A small pyramid carved from obsidian-black stone. Its surface is covered with minute'
+                'carvings that seem to shift when not viewed directly. It feels unnaturally cold to the touch,'
+                'and somehow heavier than its size would suggest. This appears to match one of the recesses'
+                'in the statue base you saw in the main hall.'
+            )
+            type: #pyramid
+            examineSanity: 0
+            placeSanity: 0
+            placeMessages: #(
+                'You carefully place the pyramid artifact into the matching recess in the statue base.'
+                'It fits perfectly, and you hear a faint click as it locks into place.'
+                'The air grows colder, and whispers fill your mind momentarily. The statue''s eyes briefly glow red.'
+            ).
         chapel addItem: item.
 
         "library"
-        item := TakeableItem newNamed: 'alchemy_techniques' described: #( "Readable"
+        item := TakeableItem newNamed: 'alchemy_techniques' described: #(
             'A weathered tome with a cracked leather spine. The pages detail ancient alchemical processes.'
             'You find several relevant sections:'
             '- Opium powder: "A salve for the troubled mind. Calms the nerves and dispels phantasms."'
@@ -544,7 +558,7 @@ Game extend [
         ).
         library addItem: item.
 
-        item := TakeableItem newNamed: 'merthveer' described: #( "Readable, special examine effect"
+        item := TakeableItem newNamed: 'merthveer' described: #(
             'A book bound in what appears to be human skin. The title "Merthveer" is branded onto the cover.'
             'The pages contain disturbing illustrations of rituals performed before a many-limbed deity'
             'with multiple eyes arranged in an unnatural pattern.'
@@ -557,7 +571,7 @@ Game extend [
         library addItem: item.
 
         "jail"
-        item := Item newNamed: 'silent_figure' described: #( "NPC/Scenery, non-takeable, special examine effect"
+        item := Item newNamed: 'silent_figure' described: #(
             'You approach the bars to get a better look at the silent prisoner.'
             'His skin is unnaturally pale, stretched too tightly over sharp bones.'
             'His eyes never blink as they follow your every movement.'
@@ -568,7 +582,7 @@ Game extend [
         "TODO: examine(silent_figure) decreases sanity by 5. Needs custom handleExamineAttemptBy:"
         jail addItem: item.
 
-        item := Item newNamed: 'human_remains' described: #( "Scenery, non-takeable"
+        item := Item newNamed: 'human_remains' described: #(
             'The corpse has been here for some time, though the dry air has preserved it somewhat.'
             'The body is contorted in an unnatural position, suggesting a violent end.'
             'The skull has been opened and appears hollow, as if its contents were removed.'
@@ -578,7 +592,7 @@ Game extend [
         ).
         jail addItem: item.
 
-        item := Item newNamed: 'horrified_man' described: #( "NPC/Scenery, non-takeable"
+        item := Item newNamed: 'horrified_man' described: #(
             'The man cowers in the far corner of his cell as you approach.'
             'His once-fine clothes hang in tatters, and his body bears countless small, precise cuts.'
             'His eyes are wide with terror as he whispers urgently: "They take us one by one...'
@@ -590,7 +604,7 @@ Game extend [
         jail addItem: item.
 
         "torture_chamber"
-        item := Item newNamed: 'dying_prisoner' described: #( "NPC/Scenery, non-takeable"
+        item := Item newNamed: 'dying_prisoner' described: #(
             'You approach the hanging man, whose breaths come in shallow, wet gasps.'
             'His body has been systematically mutilated - skin peeled away in precise patterns'
             'that form symbols similar to those you''ve seen elsewhere in the catacombs.'
@@ -600,18 +614,18 @@ Game extend [
         ).
         tortureChamber addItem: item.
 
-        item := WeaponItem newNamed: 'corroded_dagger'  "POPRAWIONE: Użycie WeaponItem"
+        item := WeaponItem newNamed: 'corroded_dagger'
             described: #(
                 'A dagger with a blade corroded by time and strange fluids.'
                 'Despite its deteriorated condition, it maintains a wicked edge.'
                 'Strange symbols are etched into the blade, visible despite the corrosion.'
                 'It feels unnaturally cold to the touch, and somehow heavier than it should be.'
             )
-            withDefaultUseText: #('You test the edge of the dagger. Despite its corrosion, it remains surprisingly sharp.'). "POPRAWIONE: Dodanie defaultUseText"
+            withDefaultUseText: #('You test the edge of the dagger. Despite its corrosion, it remains surprisingly sharp.').
         tortureChamber addItem: item.
 
         "guard_quarters"
-        item := Item newNamed: 'sleeping_guard' described: #( "NPC/Scenery, non-takeable. Opis 'żywego' strażnika"
+        item := Item newNamed: 'sleeping_guard' described: #(
             'As you approach cautiously, you realize with horror that this is not armor at all.'
             'The metal plates are fused directly to the creature''s flesh - grown from it, part of it.'
             'Its proportions are wrong - limbs too long, joints bending in impossible directions.'
@@ -621,7 +635,7 @@ Game extend [
             'You pray it doesn''t wake.'
         ).
         guardQuarters addItem: item.
-        "TODO: 'sphere_artifact' pojawia się w guard_quarters dopiero po pokonaniu strażnika - to dynamiczna zmiana (item dodawany do lokacji)."
+        "sphere_artifact jest tworzony dynamicznie przez GreenVialItem po zabiciu strażnika"
 
         item := ConsumableItem newNamed: 'whisky'
             described: #(
@@ -629,8 +643,8 @@ Game extend [
                 'The liquid inside still sloshes invitingly, preserved by the high alcohol content.'
                 'Such spirits might numb your mind to the horrors of this place, at least temporarily.'
             )
-            sanityEffect: 25  "Prolog: increase_sanity(25)"
-            hungerEffect: 10   "Prolog: increase_hunger(10)"
+            sanityEffect: 25
+            hungerEffect: 10
             usedWithDescription: #(
                 'You take a long swig of the aged whisky. It burns going down,'
                 'but spreads a comforting warmth through your body.'
@@ -644,8 +658,8 @@ Game extend [
                 'The strong smell of alcohol burns your nostrils when you remove the cork.'
                 'Drinking this might provide temporary relief for your fraying nerves.'
             )
-            sanityEffect: 25  "Prolog: increase_sanity(25)"
-            hungerEffect: 10   "Prolog: increase_hunger(10)"
+            sanityEffect: 25
+            hungerEffect: 10
             usedWithDescription: #(
                 'You drink the strong, clear spirit. It sears your throat'
                 'but brings a numbing calm to your mind.'
@@ -654,14 +668,23 @@ Game extend [
         guardQuarters addItem: item.
 
         "crypt"
-        item := TakeableItem newNamed: 'cube_artifact' described: #( "Quest item, special examine effect"
-            'A perfect cube of obsidian-black stone. When you touch it, visions of unspeakable'
-            'horror flood your mind - people transformed into twisted amalgamations of flesh and metal,'
-            'rituals performed on living subjects whose screams echo through eternity.'
-            'It feels unnaturally cold to the touch, and somehow heavier than its size would suggest.'
-            'This appears to match one of the recesses in the statue base you saw in the main hall.'
-        ).
-        "TODO: examine(cube_artifact) decreases sanity by 5 and shows messages. Needs custom handleExamineAttemptBy:"
+        item := ArtifactItem newNamed: 'cube_artifact' "Używamy ArtifactItem"
+            described: #(
+                'A perfect cube of obsidian-black stone. When you touch it, visions of unspeakable'
+                'horror flood your mind - people transformed into twisted amalgamations of flesh and metal,'
+                'rituals performed on living subjects whose screams echo through eternity.'
+                'It feels unnaturally cold to the touch, and somehow heavier than its size would suggest.'
+                'This appears to match one of the recesses in the statue base you saw in the main hall.'
+            )
+            type: #cube
+            examineSanity: -5   "Zgodnie z Prologiem: examine_item(cube_artifact) -> decrease_sanity(5)"
+            placeSanity: -10  "Zgodnie z Prologiem: use_item(cube_artifact) w main_hall -> decrease_sanity(10)"
+            placeMessages: #(
+                'You carefully place the cube artifact into the matching recess in the statue base.'
+                'As the cube slots into place, the entire chamber resonates with a deep, subsonic tone.'
+                'Shadows in the room appear to elongate, stretching toward the statue. You feel an'
+                'uncomfortable pressure in your head, as if something is probing your thoughts.'
+            ).
         crypt addItem: item.
     ]
 ]

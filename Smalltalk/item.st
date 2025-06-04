@@ -45,112 +45,6 @@ Item subclass: TakeableItem [
     ]
 ]
 
-TakeableItem subclass: ConsumableItem [
-    | sanityChange hungerChange useDescription |
-
-    ConsumableItem class >> newNamed: aNameString described: aDescriptionArray sanityEffect: aSanityDelta hungerEffect: aHungerDelta usedWithDescription: aUseDescriptionArray [
-        | instance |
-        instance := super new.
-        instance initializeWithName: aNameString
-                 described: aDescriptionArray
-                 sanityEffect: aSanityDelta
-                 hungerEffect: aHungerDelta
-                 usedWithDescription: aUseDescriptionArray.
-        ^ instance.
-    ]
-
-    initializeWithName: aNameString described: aDescriptionArray sanityEffect: aSanityDelta hungerEffect: aHungerDelta usedWithDescription: aUseDescriptionArray [
-        super initializeWithName: aNameString described: aDescriptionArray.
-        sanityChange := aSanityDelta.
-        hungerChange := aHungerDelta.
-        useDescription := aUseDescriptionArray.
-    ]
-
-    sanityChange [ ^ sanityChange ]
-    hungerChange [ ^ hungerChange ]
-    useDescription [ ^ useDescription ]
-
-    handleUseAttemptBy: aPlayer inGame: aGame [
-        aPlayer modifySanityBy: sanityChange.
-        aPlayer modifyHungerBy: hungerChange.
-
-        aGame printLines: self useDescription.
-        aGame printLines: (Array
-            with: ('Sanity changed by: ', sanityChange asString, '. Hunger changed by: ', hungerChange asString, '.')
-        ).
-
-        aPlayer removeItemNamed: self name.
-    ]
-]
-
-
-TakeableItem subclass: WeaponItem [
-    | defaultUseDescription |
-
-    WeaponItem class >> newNamed: aNameString described: aDescriptionArray withDefaultUseText: aDefaultUseDescArray [
-        | instance |
-        instance := super new.
-        instance initializeWithName: aNameString
-                 described: aDescriptionArray
-                 withDefaultUseText: aDefaultUseDescArray.
-        ^ instance.
-    ]
-
-    initializeWithName: aNameString described: aDescriptionArray withDefaultUseText: aDefaultUseDescArray [
-        super initializeWithName: aNameString described: aDescriptionArray.
-        defaultUseDescription := aDefaultUseDescArray.
-    ]
-
-    defaultUseDescription [
-        ^ defaultUseDescription
-    ]
-
-    handleUseAttemptBy: aPlayer inGame: aGame [
-        | currentLocation deadPriest game |
-        Transcript show: '--- Entering WeaponItem handleUseAttemptBy ---'; cr.
-        currentLocation := aPlayer currentLocation.
-
-        (currentLocation name = 'chapel' and: [aGame isPriestAlive])
-            ifTrue: [
-                aGame printLines: #(
-                    'You grip your weapon tightly and approach the priest. His eyes widen in realization'
-                    'but the smile never leaves his face. You plunge the blade into his chest. Black ichor,'
-                    'not blood, spills from the wound as he collapses to the floor.'
-                    'His body crumples, but the laughter continues for several seconds after.'
-                ).
-
-                currentLocation removeItemNamed: #priest.
-                deadPriest := Item newNamed: 'dead_priest' described: #(
-                    'The priest''s corpse lies in a pool of black fluid that seems to move slightly of its own accord.'
-                    'His face is frozen in that terrible smile, eyes still open and staring at nothing.'
-                    'The wound in his chest pulses faintly, as if something inside is still alive.'
-                    'Despite being clearly dead, his fingers occasionally twitch, and you swear'
-                    'you can still hear faint whispering coming from his motionless lips.'
-                ).
-                currentLocation addItem: deadPriest.
-                game setPriestAsDead.
-
-                aPlayer removeItemNamed: self name.
-                ^ self
-            ].
-
-        (currentLocation name = 'guard_quarters' and: [aGame isGuardAlive])
-            ifTrue: [
-                aGame printLines: #(
-                    'The creature rises in agony and rage, its faceplate splitting open to reveal'
-                    'rows of needle-like teeth. Though wounded and burning, it hefts its massive'
-                    'halberd with terrifying speed. The last thing you see is the blade arcing'
-                    'toward your neck before darkness claims you.'
-                ).
-                aGame gameOver.
-                ^ self
-            ].
-
-        aGame printLines: self defaultUseDescription.
-    ]
-
-]
-
 TakeableItem subclass: WeaponItem [
     | defaultUseDescription |
 
@@ -195,7 +89,7 @@ TakeableItem subclass: WeaponItem [
                     'you can still hear faint whispering coming from his motionless lips.'
                 ).
                 currentLocation addItem: deadPriest.
-                aGame setPriestAsDead.
+                aGame setPriestAsDead. "Poprawne użycie aGame"
 
                 aPlayer removeItemNamed: self name.
                 ^ self
@@ -215,7 +109,44 @@ TakeableItem subclass: WeaponItem [
 
         aGame printLines: self defaultUseDescription.
     ]
+]
 
+TakeableItem subclass: ConsumableItem [
+    | sanityChange hungerChange useDescription |
+
+    ConsumableItem class >> newNamed: aNameString described: aDescriptionArray sanityEffect: aSanityDelta hungerEffect: aHungerDelta usedWithDescription: aUseDescriptionArray [
+        | instance |
+        instance := super new.
+        instance initializeWithName: aNameString
+                 described: aDescriptionArray
+                 sanityEffect: aSanityDelta
+                 hungerEffect: aHungerDelta
+                 usedWithDescription: aUseDescriptionArray.
+        ^ instance.
+    ]
+
+    initializeWithName: aNameString described: aDescriptionArray sanityEffect: aSanityDelta hungerEffect: aHungerDelta usedWithDescription: aUseDescriptionArray [
+        super initializeWithName: aNameString described: aDescriptionArray.
+        sanityChange := aSanityDelta.
+        hungerChange := aHungerDelta.
+        useDescription := aUseDescriptionArray.
+    ]
+
+    sanityChange [ ^ sanityChange ]
+    hungerChange [ ^ hungerChange ]
+    useDescription [ ^ useDescription ]
+
+    handleUseAttemptBy: aPlayer inGame: aGame [
+        aPlayer modifySanityBy: sanityChange.
+        aPlayer modifyHungerBy: hungerChange.
+
+        aGame printLines: self useDescription.
+        aGame printLines: (Array
+            with: ('Sanity changed by: ', sanityChange asString, '. Hunger changed by: ', hungerChange asString, '.')
+        ).
+
+        aPlayer removeItemNamed: self name.
+    ]
 ]
 
 
@@ -336,5 +267,101 @@ TakeableItem subclass: ArtifactItem [
             ifFalse: [
                 aGame printLines: #('This artifact seems to match one of the recesses in the statue in the main hall.').
             ]
+    ]
+]
+
+ArtifactItem subclass: PyramidArtifactItem [
+    handleTakeAttemptBy: aPlayer inGame: aGame [
+        | currentLocation deadPriestItem weapon |
+        currentLocation := aPlayer currentLocation.
+        (currentLocation name = 'chapel')
+            ifTrue: [
+                (aGame isPriestAlive)
+                    ifTrue: [
+                        weapon := aPlayer getAWeaponItem.
+                        (weapon notNil and: [weapon name = #kitchen_knife])
+                            ifTrue: [
+                                aGame printLines: #(
+                                    'As you reach for the pyramid, the priest shrieks with rage and lunges at you.'
+                                    'In a moment of desperate reflexes, you draw your knife and defend yourself.'
+                                ).
+                                currentLocation removeItemNamed: #priest.
+                                deadPriestItem := Item newNamed: 'dead_priest' described: #(
+                                    'The priest''s corpse lies in a pool of black fluid that seems to move slightly of its own accord.'
+                                    'His face is frozen in that terrible smile, eyes still open and staring at nothing.'
+                                    'The wound in his chest pulses faintly, as if something inside is still alive.'
+                                    'Despite being clearly dead, his fingers occasionally twitch, and you swear'
+                                    'you can still hear faint whispering coming from his motionless lips.'
+                                ).
+                                currentLocation addItem: deadPriestItem.
+                                aGame setPriestAsDead.
+                                aPlayer removeItemNamed: weapon name.
+                                super handleTakeAttemptBy: aPlayer inGame: aGame.
+                                aGame printLines: #('With shaking hands, you grab the stone pyramid from the altar.').
+                                ^ true
+                            ]
+                            ifFalse: [
+                                aGame printLines: #(
+                                    'As you reach for the pyramid, the priest shrieks with rage and lunges at you.'
+                                    'Defenseless, you can only shield yourself as the priest grasps your head.'
+                                    'He speaks words that burn into your mind. Your vision fractures,'
+                                    'and reality warps around you. You are now hallucinating.'
+                                ).
+                                aPlayer modifySanityBy: -20.
+                                aPlayer isHallucinating: true.
+                                ^ false
+                            ]
+                    ]
+                    ifFalse: [
+                        aGame printLines: #('You take the stone pyramid from the altar, feeling its cold weight in your hand.').
+                        super handleTakeAttemptBy: aPlayer inGame: aGame.
+                        ^ true
+                    ]
+            ]
+            ifFalse: [
+                ^ super handleTakeAttemptBy: aPlayer inGame: aGame
+            ].
+        ^ false
+    ]
+]
+
+ConsumableItem subclass: PurpleVialItem [
+    handleUseAttemptBy: aPlayer inGame: aGame [
+        super handleUseAttemptBy: aPlayer inGame: aGame.
+
+        aGame printLines: #(
+            'You drink the purple liquid. The world around you fractures into impossible geometries.'
+            'Shadows dance at the edge of your vision, and whispers fill your ears.'
+            'Reality itself seems unstable. You fear this effect may be long-lasting.'
+        ).
+        aPlayer isHallucinating: true.
+    ]
+]
+
+ConsumableItem subclass: OpiumPowderItem [
+    handleUseAttemptBy: aPlayer inGame: aGame [
+        super handleUseAttemptBy: aPlayer inGame: aGame.
+
+        aGame printLines: #(
+            'You consume some of the opium powder. A numbing calm washes over you,'
+            'dulling the terrors of the catacombs. Your mind feels more stable.'
+        ).
+        aPlayer isHallucinating: false.
+    ]
+]
+
+TakeableItem subclass: TorchItem [
+    handleUseAttemptBy: aPlayer inGame: aGame [
+        (aPlayer isTorchLit)
+            ifTrue: [
+                aGame printLines: #('You already have a lit torch.')
+            ]
+            ifFalse: [
+                aPlayer removeItemNamed: self name.
+                aPlayer lightNewTorch.
+                aGame printLines: #(
+                    'You light the torch. The darkness recedes as flickering flames cast long shadows on the ancient walls.'
+                ).
+            ].
     ]
 ]

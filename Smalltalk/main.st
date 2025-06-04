@@ -1,6 +1,5 @@
 "The germ of a text adventure game
 Marcin Szlenk 2024"
-
 "Game class
 
 Responsibilities:
@@ -27,6 +26,15 @@ Object subclass: Game [
         'Hunger and fear will be your constant companions in this labyrinth of the damned.'
     ).
 
+    hallucinationMessages [
+        ^ #(
+            'You hear whispering voices coming from the walls.'
+            'For a moment, you see blood dripping from the ceiling, but it vanishes when you blink.'
+            'Something skitters across your peripheral vision, but nothing is there when you turn.'
+            'You feel cold, invisible hands brushing against your face.'
+            'The ground beneath you seems to pulse, as if breathing.'
+        )
+    ]
 
     instructionsText := #(
         'Available commands are:'
@@ -52,7 +60,7 @@ Object subclass: Game [
     ]
 
     isTorchLit [
-        ^ isTorchLit
+        ^ player isTorchLit
     ]
 
     isGuardAlive [
@@ -72,6 +80,7 @@ Object subclass: Game [
     ]
 
     gameOver [
+        self printLines: #('GAME OVER.' '').
         isGameOver := true.
     ]
 
@@ -81,7 +90,6 @@ Object subclass: Game [
         isGuardAlive := true.
         isPriestAlive := true.
         player := Player new.
-        player game: self.
         self initializeWorld.
         player changeLocation: (Smalltalk at: #dungeon_entrance).
     ]
@@ -119,7 +127,7 @@ Object subclass: Game [
             cmdParts := cmd substrings.
 
             (#('n.' 's.' 'e.' 'w.' 'beneath.') includes: cmd) ifTrue: [
-                player walk: cmd.
+                player walk: cmd inGame: self.
                 isUnknown := false.
             ].
 
@@ -144,7 +152,7 @@ Object subclass: Game [
             ].
 
             cmd = 'status' ifTrue: [
-                player showStatus.
+                player showStatusInGame: self.
                 isUnknown := false.
             ].
 
@@ -186,13 +194,12 @@ Object subclass: Game [
                         foundItemOrNil handleUseAttemptBy: player inGame: self.
                     ].
                 isUnknown := false.
+            ].
 
             isUnknown ifTrue: [
                 self printLines: #('Unknown command.' '').
 
             ].
-
-            player checkPlayerStatus.
         ]
     ]
 ]
